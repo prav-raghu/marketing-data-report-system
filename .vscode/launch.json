@@ -1,0 +1,190 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "👤 Customer API",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": ["run", "dev:customer-api"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+            "env": {
+                "NODE_ENV": "development"
+            },
+            "presentation": {
+                "group": "Backend Services",
+                "order": 1
+            }
+        },
+        {
+            "name": "🔐 Admin API",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": ["run", "dev:admin-api"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+            "env": {
+                "NODE_ENV": "development"
+            },
+            "presentation": {
+                "group": "Backend Services",
+                "order": 2
+            }
+        },
+        {
+            "name": "📅 Schedule API",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": ["run", "dev:schedule-api"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+            "env": {
+                "NODE_ENV": "development"
+            },
+            "presentation": {
+                "group": "Backend Services",
+                "order": 3
+            }
+        },
+        {
+            "name": "🌐 Customer Web (Next.js)",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": ["run", "dev:customer-web"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+            "env": {
+                "NODE_ENV": "development"
+            },
+            "presentation": {
+                "group": "Frontend Apps",
+                "order": 1
+            }
+        },
+        {
+            "name": "🛠️ Admin Web (Vite)",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": ["run", "dev:admin-web"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+            "env": {
+                "NODE_ENV": "development"
+            },
+            "presentation": {
+                "group": "Frontend Apps",
+                "order": 2
+            }
+        },
+        {
+            "name": "🧪 Debug Current Test File",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": ["test", "--", "--runInBand", "${relativeFile}"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+            "presentation": {
+                "group": "Testing",
+                "order": 1
+            }
+        },
+        {
+            "name": "🧪 Debug All Tests",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": ["test", "--", "--runInBand"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+            "presentation": {
+                "group": "Testing",
+                "order": 2
+            }
+        },
+        {
+            "name": "🔍 Attach to Node Process",
+            "type": "node",
+            "request": "attach",
+            "port": 9229,
+            "restart": true,
+            "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+            "presentation": {
+                "group": "Advanced",
+                "order": 1
+            }
+        },
+    ],
+    "compounds": [
+        {
+            "name": "🔥 Full Backend Stack",
+            "configurations": [
+                "👤 Customer API",
+                "🔐 Admin API",
+                "📅 Schedule API"
+            ],
+            "preLaunchTask": "🏗️ Build: Common Packages",
+            "stopAll": true,
+            "presentation": {
+                "group": "Compound Launches",
+                "order": 1
+            }
+        },
+        {
+            "name": "💻 Full Dev Environment",
+            "configurations": [
+                "👤 Customer API",
+                "🔐 Admin API",
+                "📅 Schedule API",
+                "📰 CMS (Strapi)",
+                "🌐 Customer Web (Next.js)",
+                "🛠️ Admin Web (Vite)"
+            ],
+            "preLaunchTask": "🏗️ Build: Common Packages",
+            "stopAll": true,
+            "presentation": {
+                "group": "Compound Launches",
+                "order": 2
+            }
+        },
+        {
+            "name": "🛠️ Admin Stack",
+            "configurations": [
+                "🔐 Admin API",
+                "📰 CMS (Strapi)",
+                "🛠️ Admin Web (Vite)"
+            ],
+            "preLaunchTask": "🏗️ Build: Common Packages",
+            "stopAll": true,
+            "presentation": {
+                "group": "Compound Launches",
+                "order": 3
+            }
+        },
+        {
+            "name": "🌐 Customer Stack",
+            "configurations": [
+                "👤 Customer API",
+                "🌐 Customer Web (Next.js)"
+            ],
+            "preLaunchTask": "🏗️ Build: Common Packages",
+            "stopAll": true,
+            "presentation": {
+                "group": "Compound Launches",
+                "order": 4
+            }
+        }
+    ]
+}

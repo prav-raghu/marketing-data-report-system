@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "Node16",
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "paths": {
+            "@node-mono-repo-template/*": ["./common/*"]
+        },
+        "outDir": "./dist",
+        "rootDir": "./src",
+        "moduleResolution": "Node16",
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "noImplicitAny": true,
+        "noUncheckedIndexedAccess": true,
+        "exactOptionalPropertyTypes": true
+    },
+    "include": ["apps/**/*", "common/**/*"],
+    "exclude": ["node_modules", "dist", "devops/scripts"]
+}

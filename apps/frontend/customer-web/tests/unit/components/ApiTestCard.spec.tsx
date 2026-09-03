@@ -1,0 +1,46 @@
+const mockApiClient = { get: jest.fn() };
+jest.mock("../../../app/services/api-client", () => ({
+    apiClient: mockApiClient,
+}));
+
+import { act, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import type { ApiTestCard as ApiTestCardType } from "@/components/ApiTestCard";
+import type { useApiStore as UseApiStoreType } from "@/store/use-api-store";
+
+const { ApiTestCard } = require("../../../app/components/ApiTestCard") as { ApiTestCard: typeof ApiTestCardType };
+const { useApiStore } = require("../../../app/store/use-api-store") as { useApiStore: typeof UseApiStoreType };
+
+describe("ApiTestCard", () => {
+    afterEach(() => {
+        act(() => {
+            useApiStore.getState().reset();
+        });
+    });
+
+    it("fetches and displays data on success", async () => {
+        mockApiClient.get.mockResolvedValue({ id: 1, title: "Post title", body: "Post body" });
+        const user = userEvent.setup();
+        render(<ApiTestCard />);
+
+        await user.click(screen.getByRole("button", { name: /fetch data/i }));
+
+        expect(await screen.findByText(/Success! Data fetched/i)).toBeInTheDocument();
+        expect(screen.getByText("Post title")).toBeInTheDocument();
+    });
+
+    it("schedules a retry after a failed fetch", async () => {
+        jest.useFakeTimers();
+        mockApiClient.get.mockRejectedValue(new Error("Network error"));
+        const user = userEvent.setup({ delay: null });
+        render(<ApiTestCard />);
+
+        await user.click(screen.getByRole("button", { name: /fetch data/i }));
+        await waitFor(() => expect(mockApiClient.get).toHaveBeenCalledTimes(1));
+
+        jest.advanceTimersByTime(1000);
+        await waitFor(() => expect(mockApiClient.get).toHaveBeenCalledTimes(2));
+
+        jest.useRealTimers();
+    });
+});

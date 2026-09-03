@@ -1,0 +1,418 @@
+name: Continuous Integration & Deploy
+
+on:
+    push:
+        branches: [main, develop]
+        tags:
+            - "v*.*.*"
+    pull_request:
+        branches: [main, develop]
+    workflow_dispatch:
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+env:
+    DOTNET_VERSION: "10.0.x"
+    NODE_VERSION: "22"
+    PNPM_VERSION: "11.5.0"
+    TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+    TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+    REGISTRY: ghcr.io
+    REGISTRY_NAMESPACE: ${{ github.repository_owner }}
+
+jobs:
+    # apps/backend/* and common/* are ASP.NET Core / C# (.NET 10) — NuGet Central
+    # Package Management, one solution file, no pnpm involvement at all.
+    backend-build:
+        name: Backend Build & Test (.NET)
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup .NET
+              uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: ${{ env.DOTNET_VERSION }}
+
+            - name: Restore
+              run: dotnet restore DotNetMonoRepoTemplate.sln
+
+            - name: Build (warnings as errors)
+              run: dotnet build DotNetMonoRepoTemplate.sln --no-restore -c Release /warnaserror
+
+            # No apps/backend/*/tests projects exist in this repo yet (see
+            # CLAUDE.md — every service is supposed to gain one). `dotnet test`
+            # against a solution with zero test projects succeeds trivially
+            # (nothing to run), so this step is a real gate the moment the
+            # first xUnit project lands, not dead weight today.
+            - name: Test
+              run: dotnet test DotNetMonoRepoTemplate.sln --no-build -c Release --logger "trx;LogFileName=test-results.trx" --results-directory ./test-results
+
+            - name: Upload test results
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: backend-test-results
+                  path: ./test-results
+                  retention-days: 1
+                  if-no-files-found: ignore
+
+    # apps/frontend/* (admin-web, customer-web) and apps/mobile/* stay pnpm/TypeScript.
+    frontend-install:
+        name: Install Frontend Dependencies
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: ${{ env.PNPM_VERSION }}
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+    frontend-lint:
+        name: Lint & Format (Frontend)
+        runs-on: ubuntu-latest
+        needs: frontend-install
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: ${{ env.PNPM_VERSION }}
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Check formatting
+              run: pnpm format:check
+
+            - name: Run ESLint
+              run: pnpm lint
+
+    frontend-typecheck:
+        name: Type Check (Frontend)
+        runs-on: ubuntu-latest
+        needs: frontend-install
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: ${{ env.PNPM_VERSION }}
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Run TypeScript compiler
+              run: pnpm typecheck
+
+    frontend-build:
+        name: Build (Frontend)
+        runs-on: ubuntu-latest
+        needs: [frontend-install, frontend-typecheck]
+        env:
+            VITE_ADMIN_API_BASE_URL: "http://localhost:4001/api/v1"
+            VITE_ADMIN_APP_NAME: "CI Build"
+            NEXT_PUBLIC_CUSTOMER_API_BASE_URL: "http://localhost:4002/api/v1"
+            NEXT_PUBLIC_CUSTOMER_APP_NAME: "CI Build"
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: ${{ env.PNPM_VERSION }}
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Build frontend packages
+              run: pnpm build
+
+            - name: Upload build artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: dist-artifacts
+                  path: |
+                      apps/frontend/*/dist
+                      apps/frontend/*/.next
+                  retention-days: 1
+
+    frontend-test:
+        name: Test (Frontend)
+        runs-on: ubuntu-latest
+        needs: [frontend-install, frontend-build]
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: ${{ env.PNPM_VERSION }}
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Run tests with coverage
+              run: pnpm test:coverage
+
+            - name: Upload coverage artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: frontend-coverage-reports
+                  path: |
+                      apps/frontend/*/coverage
+                      apps/mobile/*/coverage
+                  retention-days: 1
+                  if-no-files-found: ignore
+
+    quality-gate:
+        name: Quality Gate
+        runs-on: ubuntu-latest
+        needs: [backend-build, frontend-lint, frontend-typecheck, frontend-build, frontend-test]
+        if: always()
+        steps:
+            - name: Check all jobs passed
+              run: |
+                  if [[ "${{ needs.backend-build.result }}" != "success" ]] || \
+                     [[ "${{ needs.frontend-lint.result }}" != "success" ]] || \
+                     [[ "${{ needs.frontend-typecheck.result }}" != "success" ]] || \
+                     [[ "${{ needs.frontend-build.result }}" != "success" ]] || \
+                     [[ "${{ needs.frontend-test.result }}" != "success" ]]; then
+                    echo "::error::Quality gate failed - one or more checks did not pass"
+                    exit 1
+                  fi
+                  echo "All quality checks passed"
+
+    # SonarCloud analysis today only has real coverage input for the frontend
+    # (jest lcov, wired via sonar-project.properties). Backend coverage isn't
+    # wired up because no apps/backend/*/tests project exists yet in this repo
+    # (see backend-build's comment above) — once xUnit + coverlet.collector
+    # land, add a `dotnet-sonarscanner begin/end`-wrapped step here rather than
+    # bolting cobertura paths onto the generic CLI scanner, which does not do
+    # real C# semantic analysis the way the MSBuild-integrated scanner does.
+    sonarcloud:
+        name: SonarCloud
+        runs-on: ubuntu-latest
+        needs: [backend-build, frontend-test]
+        if: github.event_name == 'pull_request' || (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'))
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Download frontend coverage artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  name: frontend-coverage-reports
+                  path: .
+              continue-on-error: true
+
+            - name: SonarCloud Scan
+              uses: SonarSource/sonarcloud-github-action@master
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+              with:
+                  args: >
+                      -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY || 'node-mono-repo-template' }}
+                      -Dsonar.organization=${{ vars.SONAR_ORGANIZATION || 'node-mono-repo-template' }}
+
+            - name: SonarQube Quality Gate check
+              uses: sonarsource/sonarqube-quality-gate-action@master
+              timeout-minutes: 5
+              env:
+                  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+                  SONAR_HOST_URL: https://sonarcloud.io
+              continue-on-error: true
+
+    changes:
+        name: Detect changed services
+        runs-on: ubuntu-latest
+        if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+        outputs:
+            admin-api: ${{ steps.filter.outputs.admin-api }}
+            api-gateway: ${{ steps.filter.outputs.api-gateway }}
+            customer-api: ${{ steps.filter.outputs.customer-api }}
+            schedule-api: ${{ steps.filter.outputs.schedule-api }}
+            admin-web: ${{ steps.filter.outputs.admin-web }}
+            customer-web: ${{ steps.filter.outputs.customer-web }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Filter changed paths
+              id: filter
+              uses: dorny/paths-filter@v3
+              with:
+                  filters: |
+                      dotnet-shared: &dotnet-shared
+                        - 'Directory.Build.props'
+                        - 'Directory.Packages.props'
+                        - 'DotNetMonoRepoTemplate.sln'
+                        - 'common/**'
+                      pnpm-shared: &pnpm-shared
+                        - 'pnpm-workspace.yaml'
+                        - 'pnpm-lock.yaml'
+                        - 'package.json'
+                        - 'turbo.json'
+                      admin-api:
+                        - *dotnet-shared
+                        - 'apps/backend/admin-api/**'
+                      api-gateway:
+                        - *dotnet-shared
+                        - 'apps/backend/api-gateway/**'
+                      customer-api:
+                        - *dotnet-shared
+                        - 'apps/backend/customer-api/**'
+                      schedule-api:
+                        - *dotnet-shared
+                        - 'apps/backend/schedule-api/**'
+                      admin-web:
+                        - *pnpm-shared
+                        - 'apps/frontend/admin-web/**'
+                      customer-web:
+                        - *pnpm-shared
+                        - 'apps/frontend/customer-web/**'
+
+    docker-build:
+        name: Build & push (${{ matrix.service }})
+        needs: [quality-gate, changes]
+        if: needs.quality-gate.result == 'success' && (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'push' && github.ref == 'refs/heads/main'))
+        runs-on: ubuntu-latest
+        environment: production
+        permissions:
+            contents: read
+            packages: write
+        concurrency:
+            group: docker-build-${{ matrix.service }}-${{ github.ref }}
+            cancel-in-progress: false
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - service: admin-api
+                      dockerfile: apps/backend/admin-api/Dockerfile
+                    - service: api-gateway
+                      dockerfile: apps/backend/api-gateway/Dockerfile
+                    - service: customer-api
+                      dockerfile: apps/backend/customer-api/Dockerfile
+                    - service: schedule-api
+                      dockerfile: apps/backend/schedule-api/Dockerfile
+                    - service: admin-web
+                      dockerfile: apps/frontend/admin-web/Dockerfile
+                    - service: customer-web
+                      dockerfile: apps/frontend/customer-web/Dockerfile
+        env:
+            SHOULD_BUILD: ${{ needs.changes.outputs[matrix.service] == 'true' || github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v') }}
+        steps:
+            - name: Checkout
+              if: env.SHOULD_BUILD == 'true'
+              uses: actions/checkout@v4
+
+            - name: Set up Docker Buildx
+              if: env.SHOULD_BUILD == 'true'
+              uses: docker/setup-buildx-action@v3
+
+            - name: Log in to GHCR
+              if: env.SHOULD_BUILD == 'true'
+              uses: docker/login-action@v3
+              with:
+                  registry: ${{ env.REGISTRY }}
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Short SHA
+              if: env.SHOULD_BUILD == 'true'
+              id: sha
+              run: echo "short=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+            - name: Release version
+              if: env.SHOULD_BUILD == 'true' && startsWith(github.ref, 'refs/tags/v')
+              id: version
+              run: echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+
+            # Backend Dockerfiles (admin-api/api-gateway/customer-api/schedule-api)
+            # build from the monorepo root with `dotnet restore`/`dotnet publish`
+            # against Directory.Build.props/Directory.Packages.props + common/ +
+            # the target service — no build-args needed, unlike the frontend
+            # images, since nothing backend-side bakes public config into the
+            # image at build time (it's all runtime env vars, see docker.md).
+            - name: Build & push ${{ matrix.service }}
+              if: env.SHOULD_BUILD == 'true'
+              uses: docker/build-push-action@v6
+              with:
+                  context: .
+                  file: ${{ matrix.dockerfile }}
+                  push: true
+                  build-args: |
+                      ${{ matrix.service == 'admin-web' && format('VITE_ADMIN_API_BASE_URL={0}', vars.VITE_ADMIN_API_BASE_URL) || '' }}
+                      ${{ matrix.service == 'admin-web' && format('VITE_ADMIN_APP_NAME={0}', vars.VITE_ADMIN_APP_NAME) || '' }}
+                      ${{ matrix.service == 'customer-web' && format('NEXT_PUBLIC_CUSTOMER_API_BASE_URL={0}', vars.CUSTOMER_WEB_API_BASE_URL) || '' }}
+                      ${{ matrix.service == 'customer-web' && format('NEXT_PUBLIC_CUSTOMER_APP_NAME={0}', vars.CUSTOMER_WEB_APP_NAME) || '' }}
+                  tags: |
+                      ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ matrix.service }}:main
+                      ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ matrix.service }}:sha-${{ steps.sha.outputs.short }}
+                      ${{ steps.version.outputs.tag && format('{0}/{1}/{2}:{3}', env.REGISTRY, env.REGISTRY_NAMESPACE, matrix.service, steps.version.outputs.tag) || '' }}
+                  cache-from: type=gha,scope=${{ matrix.service }}
+                  cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+
+    deploy:
+        name: Trigger Coolify deploy
+        needs: docker-build
+        runs-on: ubuntu-latest
+        if: needs.docker-build.result == 'success'
+        environment: production
+        concurrency:
+            group: docker-deploy-${{ github.ref }}
+            cancel-in-progress: false
+        steps:
+            - name: Call Coolify deploy webhook
+              run: |
+                  curl --fail-with-body -X GET \
+                    "${{ secrets.COOLIFY_WEBHOOK_URL }}" \
+                    -H "Authorization: Bearer ${{ secrets.COOLIFY_API_TOKEN }}"

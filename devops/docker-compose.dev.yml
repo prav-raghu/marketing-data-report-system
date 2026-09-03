@@ -1,0 +1,107 @@
+version: "3.8"
+
+services:
+    postgres:
+        image: postgres:16-alpine
+        container_name: mono-repo-postgres-dev
+        restart: unless-stopped
+        environment:
+            POSTGRES_USER: ${POSTGRES_USER:-postgres}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+            POSTGRES_DB: ${POSTGRES_DB:-app_database}
+        ports:
+            - "5432:5432"
+        volumes:
+            - postgres_dev_data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-app_database}"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+            start_period: 10s
+        networks:
+            - mono-repo-dev
+
+    redis:
+        image: redis:7-alpine
+        container_name: mono-repo-redis-dev
+        restart: unless-stopped
+        ports:
+            - "6379:6379"
+        volumes:
+            - redis_dev_data:/data
+        command: redis-server --appendonly yes
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+        networks:
+            - mono-repo-dev
+
+    redis-commander:
+        image: rediscommander/redis-commander:latest
+        container_name: mono-repo-redis-ui
+        restart: unless-stopped
+        environment:
+            REDIS_HOSTS: local:redis:6379
+        ports:
+            - "8081:8081"
+        depends_on:
+            redis:
+                condition: service_healthy
+        networks:
+            - mono-repo-dev
+
+    mailhog:
+        image: mailhog/mailhog:latest
+        container_name: mono-repo-mailhog
+        restart: unless-stopped
+        ports:
+            - "1025:1025"
+            - "8025:8025"
+        networks:
+            - mono-repo-dev
+
+    adminer:
+        image: adminer:latest
+        container_name: mono-repo-adminer
+        restart: unless-stopped
+        ports:
+            - "8080:8080"
+        environment:
+            ADMINER_DEFAULT_SERVER: postgres
+            ADMINER_DESIGN: dracula
+        depends_on:
+            postgres:
+                condition: service_healthy
+        networks:
+            - mono-repo-dev
+
+    openobserve:
+        image: public.ecr.aws/zinclabs/openobserve:latest
+        container_name: mono-repo-openobserve
+        restart: unless-stopped
+        environment:
+            ZO_ROOT_USER_EMAIL: ${OPENOBSERVE_EMAIL:-admin@example.com}
+            ZO_ROOT_USER_PASSWORD: ${OPENOBSERVE_PASSWORD:-Dev_password1!}
+            ZO_DATA_DIR: /data
+        volumes:
+            - openobserve_data:/data
+        ports:
+            - "5080:5080"
+        networks:
+            - mono-repo-dev
+
+volumes:
+    postgres_dev_data:
+        name: mono-repo-postgres-dev-data
+    redis_dev_data:
+        name: mono-repo-redis-dev-data
+    openobserve_data:
+        name: mono-repo-openobserve-data
+
+networks:
+    mono-repo-dev:
+        name: mono-repo-dev-network
+        driver: bridge
