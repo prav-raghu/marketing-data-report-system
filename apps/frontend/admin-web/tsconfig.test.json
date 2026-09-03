@@ -1,0 +1,13 @@
+{
+    "extends": "./tsconfig.app.json",
+    "compilerOptions": {
+        "module": "CommonJS",
+        "moduleResolution": "Node10",
+        "ignoreDeprecations": "6.0",
+        "verbatimModuleSyntax": false,
+        "erasableSyntaxOnly": false,
+        "isolatedModules": true,
+        "types": ["jest", "node", "vite/client"]
+    },
+    "include": ["src", "tests"]
+}

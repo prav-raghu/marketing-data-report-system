@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotNetMonoRepoTemplate.Logging\DotNetMonoRepoTemplate.Logging.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Templates\**\*.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

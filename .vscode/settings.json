@@ -1,0 +1,197 @@
+{
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": false,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit",
+        "source.organizeImports": "explicit"
+    },
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "editor.rulers": [140],
+    "editor.wordWrap": "off",
+    "editor.bracketPairColorization.enabled": true,
+    "editor.guides.bracketPairs": true,
+    "editor.inlineSuggest.enabled": true,
+
+    "files.eol": "\n",
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.exclude": {
+        "**/node_modules": true,
+        "**/dist": true,
+        "**/.turbo": true,
+        "**/coverage": true,
+        "**/.next": true,
+        "**/bin": true,
+        "**/obj": true,
+        "**/.vs": true
+    },
+    "files.watcherExclude": {
+        "**/node_modules/**": true,
+        "**/dist/**": true,
+        "**/.turbo/**": true,
+        "**/coverage/**": true,
+        "**/.next/**": true,
+        "**/bin/**": true,
+        "**/obj/**": true,
+        "**/.vs/**": true
+    },
+
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/dist": true,
+        "**/.turbo": true,
+        "**/coverage": true,
+        "**/.next": true,
+        "**/pnpm-lock.yaml": true,
+        "**/bin": true,
+        "**/obj": true,
+        "**/.vs": true
+    },
+
+    "javascript.suggest.paths": true,
+    "typescript.suggest.paths": true,
+    "javascript.autoClosingTags": true,
+    "typescript.autoClosingTags": true,
+    "javascript.updateImportsOnFileMove.enabled": "always",
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "javascript.preferences.importModuleSpecifier": "relative",
+    "typescript.preferences.importModuleSpecifier": "relative",
+    "typescript.preferences.quoteStyle": "double",
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "typescript.enablePromptUseWorkspaceTsdk": true,
+
+    "eslint.enable": true,
+    "eslint.validate": [
+        "javascript",
+        "javascriptreact",
+        "typescript",
+        "typescriptreact"
+    ],
+    "eslint.workingDirectories": [
+        { "mode": "auto" }
+    ],
+
+    "prettier.requireConfig": true,
+    "prettier.useEditorConfig": true,
+
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[javascriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[json]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[jsonc]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[markdown]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[prisma]": {
+        "editor.defaultFormatter": "Prisma.prisma"
+    },
+    "[csharp]": {
+        "editor.defaultFormatter": "csharpier.csharpier-vscode",
+        "editor.tabSize": 4,
+        "editor.rulers": [120]
+    },
+
+    "tailwindCSS.experimental.classRegex": [
+        ["clsx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"],
+        ["cn\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+    ],
+    "tailwindCSS.includeLanguages": {
+        "typescript": "javascript",
+        "typescriptreact": "javascript"
+    },
+
+    "jest.autoRun": "off",
+    "jest.jestCommandLine": "pnpm test --",
+    "jest.rootPath": "${workspaceFolder}",
+
+    "dotnet.defaultSolution": "DotNetMonoRepoTemplate.sln",
+    "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
+    "dotnet.inlayHints.enableInlayHintsForParameters": true,
+    "dotnet.codeLens.enableReferencesCodeLens": true,
+    "csharp.format.enable": false,
+    "omnisharp.enableEditorConfigSupport": true,
+    "omnisharp.enableRoslynAnalyzers": true,
+    "editorconfig.generateAuto": false,
+
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "terminal.integrated.defaultProfile.linux": "bash",
+    "terminal.integrated.defaultProfile.osx": "zsh",
+    "terminal.integrated.env.windows": {
+        "NODE_ENV": "development"
+    },
+    "terminal.integrated.env.linux": {
+        "NODE_ENV": "development"
+    },
+    "terminal.integrated.env.osx": {
+        "NODE_ENV": "development"
+    },
+
+    "docker.environment": {
+        "COMPOSE_PROJECT_NAME": "node-mono-repo"
+    },
+
+    "errorLens.enabledDiagnosticLevels": ["error", "warning"],
+    "errorLens.excludeBySource": ["cSpell"],
+
+    "todo-tree.general.tags": [
+        "TODO",
+        "FIXME",
+        "BUG",
+        "HACK",
+        "XXX",
+        "REVIEW",
+        "OPTIMIZE",
+        "NOTE"
+    ],
+
+    "cSpell.words": [
+        "fastify",
+        "pnpm",
+        "turbo",
+        "prisma",
+        "monorepo",
+        "middlewares",
+        "opentelemetry",
+        "ajv",
+        "zod",
+        "tanstack",
+        "zustand",
+        "tailwindcss",
+        "dotnet",
+        "csproj",
+        "csdevkit",
+        "csharpier",
+        "omnisharp",
+        "roslynator",
+        "efcore",
+        "npgsql",
+        "hangfire",
+        "piranha",
+        "aspnet",
+        "kestrel",
+        "fluentvalidation",
+        "bcrypt",
+        "otplib",
+        "sentry",
+        "serilog"
+    ],
+    "containers.environment": {
+        "COMPOSE_PROJECT_NAME": "node-mono-repo"
+    }
+}

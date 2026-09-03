@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-api
+  labels:
+    app: admin-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: admin-api
+  template:
+    metadata:
+      labels:
+        app: admin-api
+    spec:
+      containers:
+        - name: admin-api
+          image: your-docker-repo/admin-api:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: admin-api-secrets
+                  key: database-url
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: admin-api-secrets
+                  key: jwt-secret
+            - name: NODE_ENV
+              value: production
+      imagePullSecrets:
+        - name: regcred

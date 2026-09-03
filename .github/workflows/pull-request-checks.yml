@@ -1,0 +1,107 @@
+name: Pull Request Checks
+
+on:
+    pull_request:
+        types: [opened, synchronize, reopened, edited]
+
+permissions:
+    contents: read
+    pull-requests: write
+
+jobs:
+    pr-title:
+        name: PR Title Convention
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check PR title
+              uses: amannn/action-semantic-pull-request@v5
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              with:
+                  types: |
+                      feat
+                      fix
+                      docs
+                      style
+                      refactor
+                      perf
+                      test
+                      build
+                      ci
+                      chore
+                      revert
+                  requireScope: false
+                  subjectPattern: ^(?![A-Z]).+$
+                  subjectPatternError: |
+                      The subject "{subject}" found in the pull request title "{title}"
+                      should start with a lowercase letter.
+                  ignoreLabels: |
+                      bot
+                      dependencies
+                  headerPattern: '^(\w*)(?:\(([\w$.\-*/ ]*)\))?: (.*)$'
+                  headerPatternCorrespondence: type, scope, subject
+
+    # Frontend-only — apps/backend/* is ASP.NET Core now and has no pnpm
+    # build/dist output to size-compare. `dotnet build` publish sizes aren't
+    # comparable to a frontend bundle-size regression check the same way, and
+    # aren't wired up here; this job stays scoped to admin-web/customer-web.
+    size-check:
+        name: Bundle Size Check
+        runs-on: ubuntu-latest
+        env:
+            VITE_ADMIN_API_BASE_URL: "http://localhost:4001/api/v1"
+            VITE_ADMIN_APP_NAME: "CI Build"
+            NEXT_PUBLIC_CUSTOMER_API_BASE_URL: "http://localhost:4002/api/v1"
+            NEXT_PUBLIC_CUSTOMER_APP_NAME: "CI Build"
+        steps:
+            - name: Checkout base
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.base_ref }}
+                  path: base
+
+            - name: Checkout PR
+              uses: actions/checkout@v4
+              with:
+                  path: pr
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: "11.5.0"
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "22"
+
+            - name: Install and build base
+              working-directory: base
+              run: |
+                  pnpm install --frozen-lockfile
+                  pnpm build
+              continue-on-error: true
+
+            - name: Install and build PR
+              working-directory: pr
+              run: |
+                  pnpm install --frozen-lockfile
+                  pnpm build
+
+            - name: Compare bundle sizes
+              run: |
+                  echo "## Bundle Size Comparison" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+
+                  if [ -d "base/apps/frontend" ]; then
+                    BASE_SIZE=$(du -sb base/apps/frontend/*/dist base/apps/frontend/*/.next 2>/dev/null | awk '{sum+=$1} END {print sum}' || echo "0")
+                  else
+                    BASE_SIZE=0
+                  fi
+
+                  PR_SIZE=$(du -sb pr/apps/frontend/*/dist pr/apps/frontend/*/.next 2>/dev/null | awk '{sum+=$1} END {print sum}' || echo "0")
+
+                  echo "| Branch | Size |" >> $GITHUB_STEP_SUMMARY
+                  echo "|--------|------|" >> $GITHUB_STEP_SUMMARY
+                  echo "| Base | ${BASE_SIZE} bytes |" >> $GITHUB_STEP_SUMMARY
+                  echo "| PR | ${PR_SIZE} bytes |" >> $GITHUB_STEP_SUMMARY
