@@ -1,0 +1,35 @@
+location     = "southafricanorth"
+environment  = "dev"
+project_name = "node-mono-repo-template"
+
+customer_api_image = "yourregistrydev.azurecr.io/customer-api:latest"
+admin_api_image    = "yourregistrydev.azurecr.io/admin-api:latest"
+customer_web_image = "yourregistrydev.azurecr.io/customer-web:latest"
+
+database_url              = "postgresql://user:password@host:5432/dbname?pgbouncer=true"
+mailtrap_api_key          = "your-mailtrap-api-key"
+mailtrap_from             = "noreply@yourdomain.com"
+mailtrap_from_name        = "Your App Name"
+stripe_secret_key         = "sk_live_xxxxxxxxxxxxxxxxxxxx"
+stripe_webhook_secret     = "whsec_xxxxxxxxxxxxxxxxxxxx"
+stripe_publishable_key    = "pk_live_xxxxxxxxxxxxxxxxxxxx"
+two_factor_encryption_key = "64-hex-character-random-string"
+smsportal_client_id       = "your-smsportal-client-id"
+smsportal_api_secret      = "your-smsportal-api-secret"
+
+customer_api_min_replicas = 0
+customer_api_max_replicas = 10
+
+admin_api_min_replicas = 0
+admin_api_max_replicas = 5
+
+customer_web_min_replicas = 0
+customer_web_max_replicas = 10
+
+redis_capacity = 1
+redis_family   = "C"
+redis_sku      = "Standard"
+
+customer_web_url = "https://app.yourdomain.com"
+admin_web_url    = "https://admin.yourdomain.com"
+admin_web_domain = "admin.yourdomain.com"

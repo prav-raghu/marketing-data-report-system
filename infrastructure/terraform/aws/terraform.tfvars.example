@@ -1,0 +1,41 @@
+region       = "af-south-1"
+environment  = "dev"
+project_name = "node-mono-repo-template"
+
+customer_api_image = "123456789.dkr.ecr.af-south-1.amazonaws.com/node-mono-repo-template-dev-customer-api:latest"
+admin_api_image    = "123456789.dkr.ecr.af-south-1.amazonaws.com/node-mono-repo-template-dev-admin-api:latest"
+customer_web_image = "123456789.dkr.ecr.af-south-1.amazonaws.com/node-mono-repo-template-dev-customer-web:latest"
+
+database_url              = "postgresql://user:password@host:5432/dbname?pgbouncer=true"
+mailtrap_api_key          = "your-mailtrap-api-key"
+mailtrap_from             = "noreply@yourdomain.com"
+mailtrap_from_name        = "Your App Name"
+stripe_secret_key         = "sk_live_xxxxxxxxxxxxxxxxxxxx"
+stripe_webhook_secret     = "whsec_xxxxxxxxxxxxxxxxxxxx"
+stripe_publishable_key    = "pk_live_xxxxxxxxxxxxxxxxxxxx"
+two_factor_encryption_key = "64-hex-character-random-string"
+smsportal_client_id       = "your-smsportal-client-id"
+smsportal_api_secret      = "your-smsportal-api-secret"
+
+customer_api_cpu          = 256
+customer_api_memory       = 512
+customer_api_min_capacity = 1
+customer_api_max_capacity = 10
+
+admin_api_cpu          = 256
+admin_api_memory       = 512
+admin_api_min_capacity = 1
+admin_api_max_capacity = 5
+
+customer_web_cpu          = 256
+customer_web_memory       = 512
+customer_web_min_capacity = 1
+customer_web_max_capacity = 10
+
+redis_node_type       = "cache.t3.micro"
+redis_num_cache_nodes = 1
+
+customer_web_url = "https://app.yourdomain.com"
+admin_web_url    = "https://admin.yourdomain.com"
+admin_web_domain = "admin.yourdomain.com"
+certificate_arn  = "arn:aws:acm:us-east-1:123456789:certificate/your-cert-id"

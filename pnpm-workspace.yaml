@@ -1,0 +1,21 @@
+packages:
+  - "apps/frontend/*"
+  - "apps/mobile/*"
+  # apps/backend is ASP.NET Core (.NET 10) now — dotnet CLI + NuGet CPM, not a pnpm workspace member
+  # apps/cms is excluded — managed independently with npm
+  # common/* is C# class libraries (DotNetMonoRepoTemplate.*) now — not a pnpm workspace member
+  # apps/frontend/admin-web and apps/frontend/customer-web are Blazor (.NET 10) —
+  # dotnet CLI + NuGet CPM builds the actual app; each still carries its own minimal package.json
+  # (Tailwind CLI only, no framework deps) so `pnpm --filter <app> build:css` resolves it as a
+  # normal workspace member. apps/mobile/customer-mobile is .NET MAUI Blazor Hybrid (C#) for the
+  # same reason — its package.json is Tailwind CLI only too.
+
+verifyDepsBeforeRun: false
+
+allowBuilds:
+  "@sentry/cli": true
+  core-js: true
+  cypress: true
+  esbuild: true
+  sharp: true
+  unrs-resolver: true

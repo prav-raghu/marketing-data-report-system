@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+:root {
+    --background: hsl(0, 0%, 100%);
+    --foreground: hsl(222, 47%, 11%);
+    --muted: hsl(210, 40%, 96%);
+    --muted-foreground: hsl(215, 16%, 47%);
+    --primary: hsl(173, 80%, 32%);
+    --primary-foreground: hsl(0, 0%, 100%);
+}
+
+@theme {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+}
+
+@source "../../**/*.razor";
+
+@layer base {
+    body {
+        @apply font-sans antialiased bg-background text-foreground;
+    }
+}

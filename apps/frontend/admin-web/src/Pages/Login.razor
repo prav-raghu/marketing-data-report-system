@@ -1,0 +1,110 @@
+@page "/login"
+@attribute [AllowAnonymous]
+@inject AuthService AuthService
+@inject IValidator<LoginRequest> Validator
+@inject NavigationManager Navigation
+
+<div class="min-h-screen bg-background flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <div class="bg-card border border-border rounded-lg p-8 shadow-sm">
+            <h1 class="text-2xl font-bold text-foreground mb-2">Admin Login</h1>
+            <p class="text-muted-foreground mb-6">Sign in to access the admin dashboard</p>
+
+            @if (_serverError is not null)
+            {
+                <div class="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded text-destructive text-sm">
+                    @_serverError
+                </div>
+            }
+
+            <form @onsubmit="HandleSubmitAsync" @onsubmit:preventDefault="true">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-foreground mb-1" for="email">Email</label>
+                    <input
+                        id="email"
+                        type="email"
+                        autocomplete="email"
+                        class="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                        @bind="_form.Email" />
+                    @if (_errors.TryGetValue(nameof(LoginRequest.Email), out var emailError))
+                    {
+                        <p class="mt-1 text-xs text-destructive">@emailError</p>
+                    }
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-foreground mb-1" for="password">Password</label>
+                    <input
+                        id="password"
+                        type="password"
+                        autocomplete="current-password"
+                        class="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                        @bind="_form.Password" />
+                    @if (_errors.TryGetValue(nameof(LoginRequest.Password), out var passwordError))
+                    {
+                        <p class="mt-1 text-xs text-destructive">@passwordError</p>
+                    }
+                </div>
+
+                <button
+                    type="submit"
+                    disabled="@_loading"
+                    class="w-full py-2 px-4 bg-primary text-primary-foreground font-medium rounded-md hover:opacity-90 transition-opacity disabled:opacity-50">
+                    @(_loading ? "Signing in..." : "Sign in")
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@code {
+    private readonly LoginRequest _form = new();
+    private readonly Dictionary<string, string> _errors = new();
+    private string? _serverError;
+    private bool _loading;
+
+    private async Task HandleSubmitAsync()
+    {
+        _serverError = null;
+        var validation = await Validator.ValidateAsync(_form);
+        _errors.Clear();
+        if (!validation.IsValid)
+        {
+            foreach (var failure in validation.Errors)
+            {
+                if (!_errors.ContainsKey(failure.PropertyName))
+                {
+                    _errors[failure.PropertyName] = failure.ErrorMessage;
+                }
+            }
+            return;
+        }
+
+        _loading = true;
+        try
+        {
+            var result = await AuthService.LoginAsync(_form);
+            if (result is null || !result.IsSuccessful)
+            {
+                _serverError = result?.Message ?? "Invalid credentials. Please try again.";
+                return;
+            }
+
+            if (result.Data?.MfaRequired == true)
+            {
+                Navigation.NavigateTo("/login/verify");
+                return;
+            }
+
+            Navigation.NavigateTo("/");
+        }
+        catch (HttpRequestException)
+        {
+            _serverError = "Invalid credentials. Please try again.";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

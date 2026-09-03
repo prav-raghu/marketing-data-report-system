@@ -1,0 +1,47 @@
+@page "/"
+@attribute [Authorize]
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="min-h-screen bg-background py-12 px-4">
+    <div class="max-w-6xl mx-auto">
+        <AuthorizeView>
+            <Authorized>
+                <header class="text-center mb-12">
+                    <h1 class="text-4xl font-bold text-foreground mb-2">Admin Dashboard</h1>
+                    <p class="text-muted-foreground">Signed in as @context.User.Identity?.Name</p>
+                    <div class="flex justify-center gap-3 mt-6">
+                        <a href="/about" class="px-5 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity shadow-sm">
+                            About →
+                        </a>
+                        <a href="/settings/security" class="px-5 py-2.5 bg-secondary text-secondary-foreground rounded-lg hover:opacity-90 transition-opacity shadow-sm">
+                            Two-factor settings
+                        </a>
+                        <button
+                            @onclick="HandleLogoutAsync"
+                            class="px-5 py-2.5 bg-destructive text-destructive-foreground rounded-lg hover:opacity-90 transition-opacity shadow-sm">
+                            Log out
+                        </button>
+                    </div>
+                </header>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <CounterCard />
+                    <ApiTestCard />
+                </div>
+
+                <div class="mb-6">
+                    <TailwindShowcase />
+                </div>
+            </Authorized>
+        </AuthorizeView>
+    </div>
+</div>
+
+@code {
+    private async Task HandleLogoutAsync()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/login", replace: true);
+    }
+}

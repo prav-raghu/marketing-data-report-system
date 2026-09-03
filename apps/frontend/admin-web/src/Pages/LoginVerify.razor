@@ -1,0 +1,87 @@
+@page "/login/verify"
+@attribute [AllowAnonymous]
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="min-h-screen bg-background flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <div class="bg-card border border-border rounded-lg p-8 shadow-sm">
+            <h1 class="text-2xl font-bold text-foreground mb-2">Verification required</h1>
+            <p class="text-muted-foreground mb-6">Enter the 6-digit code from your authenticator app. The code expires in 5 minutes — if it does, sign in again.</p>
+
+            @if (_serverError is not null)
+            {
+                <div class="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded text-destructive text-sm">
+                    @_serverError
+                </div>
+            }
+
+            <form @onsubmit="HandleSubmitAsync" @onsubmit:preventDefault="true">
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-foreground mb-1" for="code">Verification code</label>
+                    <input
+                        id="code"
+                        type="text"
+                        inputmode="numeric"
+                        maxlength="6"
+                        autocomplete="one-time-code"
+                        class="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                        @bind="_code" />
+                </div>
+
+                <button
+                    type="submit"
+                    disabled="@_loading"
+                    class="w-full py-2 px-4 bg-primary text-primary-foreground font-medium rounded-md hover:opacity-90 transition-opacity disabled:opacity-50">
+                    @(_loading ? "Verifying..." : "Verify")
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string _code = string.Empty;
+    private string? _serverError;
+    private bool _loading;
+
+    protected override void OnInitialized()
+    {
+        if (string.IsNullOrEmpty(AuthService.PendingMfaToken))
+        {
+            Navigation.NavigateTo("/login", replace: true);
+        }
+    }
+
+    private async Task HandleSubmitAsync()
+    {
+        if (string.IsNullOrEmpty(AuthService.PendingMfaToken))
+        {
+            Navigation.NavigateTo("/login", replace: true);
+            return;
+        }
+
+        _serverError = null;
+        _loading = true;
+        try
+        {
+            var request = new VerifyLoginMfaRequest { MfaToken = AuthService.PendingMfaToken, Code = _code, RememberMe = false };
+            var result = await AuthService.VerifyLoginMfaAsync(request);
+            if (result is null || !result.IsSuccessful)
+            {
+                _serverError = result?.Message ?? "Invalid verification code";
+                return;
+            }
+
+            Navigation.NavigateTo("/");
+        }
+        catch (HttpRequestException)
+        {
+            _serverError = "Invalid verification code";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

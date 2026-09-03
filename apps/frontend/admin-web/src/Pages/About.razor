@@ -1,0 +1,46 @@
+@page "/about"
+@attribute [Authorize]
+@inject CounterState CounterState
+
+<div class="min-h-screen bg-background py-12 px-4">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-card border border-border rounded-lg shadow-xl p-8">
+            <h1 class="text-4xl font-bold text-foreground mb-6">About This Template</h1>
+
+            <div class="max-w-none">
+                <p class="text-lg text-muted-foreground mb-4">
+                    Blazor WebAssembly proof-of-concept for the admin-web React → Blazor migration.
+                </p>
+
+                <h2 class="text-2xl font-semibold text-foreground mt-6 mb-3">🚀 Tech Stack</h2>
+                <ul class="space-y-2 text-muted-foreground">
+                    <li>🟣 <strong>Blazor WebAssembly</strong> — .NET 10, runs entirely client-side</li>
+                    <li>🛡️ <strong>FluentValidation</strong> — same rule sets as the backend, called manually on submit</li>
+                    <li>🎨 <strong>Tailwind CSS 4</strong> — same theme tokens as the React app, built via the Tailwind CLI</li>
+                    <li>🔁 <strong>Polly</strong> — HttpClient retry policy, same 408/429/5xx backoff as <code>api-client.ts</code></li>
+                    <li>🧭 <strong>Blazor Router / AuthorizeRouteView</strong> — replaces the hand-rolled ProtectedRoute</li>
+                </ul>
+
+                <h2 class="text-2xl font-semibold text-foreground mt-6 mb-3">🧪 Router Test</h2>
+                <p class="text-muted-foreground mb-4">
+                    You're currently on the <strong>About</strong> page. The router is working correctly!
+                </p>
+                <p class="text-muted-foreground mb-4">
+                    The counter from the Home page persists: <strong class="text-primary text-xl">@CounterState.Count</strong>
+                </p>
+                <p class="text-sm text-muted-foreground italic">
+                    ✅ This demonstrates that a scoped DI service persists across route changes.
+                </p>
+
+                <div class="mt-8 flex gap-4">
+                    <a href="/" class="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity shadow-md">
+                        ← Back to Home
+                    </a>
+                    <a href="/nonexistent" class="px-6 py-3 bg-secondary text-secondary-foreground rounded-lg hover:opacity-90 transition-opacity shadow-md">
+                        Test 404 Page
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

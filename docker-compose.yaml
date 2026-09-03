@@ -1,0 +1,250 @@
+services:
+  # No EF Core migrations exist in this repo yet — the live Postgres schema is
+  # still the only source of truth post-Prisma-removal (see ef-core.md). The
+  # Node-era `devops/scripts/migrate-deploy.sh` ran `prisma migrate deploy`
+  # against a pnpm/node_modules layout that no longer exists in the .NET
+  # admin-api image, so it would exit 1 and (via the `depends_on:
+  # service_completed_successfully` gates below) block every backend service
+  # from ever starting. This is left as a documented no-op until a baseline
+  # EF Core migration exists and a real `dotnet ef database update` step (or
+  # startup-time migration) replaces the `command` below.
+  migrate:
+    image: ghcr.io/node-mono-repo-template/admin-api:main
+    pull_policy: always
+    container_name: migrate
+    command: ["sh", "-c", "echo 'EF Core migrations not yet configured - skipping' && exit 0"]
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    restart: "no"
+    networks:
+      - app-network
+      - coolify
+
+  admin-api:
+    image: ghcr.io/node-mono-repo-template/admin-api:main
+    pull_policy: always
+    expose:
+      - "4001"
+    environment:
+      NODE_ENV: production
+      DOTNET_ENVIRONMENT: Production
+      PORT: "4001"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      REDIS_TLS_REJECT_UNAUTHORIZED: ${REDIS_TLS_REJECT_UNAUTHORIZED:-false}
+      JWT_SECRET: ${ADMIN_JWT_SECRET}
+      JWT_REFRESH_SECRET: ${ADMIN_JWT_REFRESH_SECRET}
+      MFA_CHALLENGE_SECRET: ${ADMIN_MFA_CHALLENGE_SECRET}
+      REFRESH_TOKEN_EXPIRY: ${REFRESH_TOKEN_EXPIRY}
+      AUTH_TOKEN_EXPIRY: ${AUTH_TOKEN_EXPIRY}
+      RATE_LIMIT_WINDOW: ${RATE_LIMIT_WINDOW}
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX}
+      CORS_ORIGIN: ${ADMIN_WEB_URL}
+      ADMIN_WEB_URL: ${ADMIN_WEB_URL}
+      MAILTRAP_API_KEY: ${MAILTRAP_API_KEY}
+      MAILTRAP_FROM: ${MAILTRAP_FROM}
+      MAILTRAP_FROM_NAME: ${MAILTRAP_FROM_NAME}
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:-}
+      PASSWORD_RESET_EXPIRATION_MINUTES: ${PASSWORD_RESET_EXPIRATION_MINUTES:-30}
+      TWO_FACTOR_ENCRYPTION_KEY: ${TWO_FACTOR_ENCRYPTION_KEY}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:4001/api/v1/ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - app-network
+      - coolify
+
+  customer-api:
+    image: ghcr.io/node-mono-repo-template/customer-api:main
+    pull_policy: always
+    expose:
+      - "4002"
+    environment:
+      NODE_ENV: production
+      DOTNET_ENVIRONMENT: Production
+      PORT: "4002"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      REDIS_TLS_REJECT_UNAUTHORIZED: ${REDIS_TLS_REJECT_UNAUTHORIZED:-false}
+      JWT_SECRET: ${CUSTOMER_JWT_SECRET}
+      JWT_REFRESH_SECRET: ${CUSTOMER_JWT_REFRESH_SECRET}
+      REFRESH_TOKEN_EXPIRY: ${REFRESH_TOKEN_EXPIRY}
+      AUTH_TOKEN_EXPIRY: ${AUTH_TOKEN_EXPIRY}
+      RATE_LIMIT_WINDOW: ${RATE_LIMIT_WINDOW}
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX}
+      CORS_ORIGIN: ${CUSTOMER_WEB_URL}
+      CUSTOMER_WEB_URL: ${CUSTOMER_WEB_URL}
+      MAILTRAP_API_KEY: ${MAILTRAP_API_KEY}
+      MAILTRAP_FROM: ${MAILTRAP_FROM}
+      MAILTRAP_FROM_NAME: ${MAILTRAP_FROM_NAME}
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:-}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:4002/api/v1/ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - app-network
+      - coolify
+
+  schedule-api:
+    image: ghcr.io/node-mono-repo-template/schedule-api:main
+    pull_policy: always
+    expose:
+      - "4003"
+    environment:
+      NODE_ENV: production
+      DOTNET_ENVIRONMENT: Production
+      PORT: "4003"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      REDIS_TLS_REJECT_UNAUTHORIZED: ${REDIS_TLS_REJECT_UNAUTHORIZED:-false}
+      SCHEDULE_API_KEY: ${SCHEDULE_API_KEY}
+      REFRESH_TOKEN_EXPIRY: ${REFRESH_TOKEN_EXPIRY}
+      AUTH_TOKEN_EXPIRY: ${AUTH_TOKEN_EXPIRY}
+      RATE_LIMIT_WINDOW: ${RATE_LIMIT_WINDOW}
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX}
+      CORS_ORIGIN: ${CUSTOMER_WEB_URL}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:4003/api/v1/ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - app-network
+      - coolify
+
+  api-gateway:
+    image: ghcr.io/node-mono-repo-template/api-gateway:main
+    pull_policy: always
+    expose:
+      - "4000"
+    environment:
+      NODE_ENV: production
+      DOTNET_ENVIRONMENT: Production
+      PORT: "4000"
+      CORS_ORIGIN: ${CUSTOMER_WEB_URL}
+      CUSTOMER_API_URL: http://customer-api:4002
+      ADMIN_API_URL: http://admin-api:4001
+      SCHEDULER_API_URL: http://schedule-api:4003
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX}
+      RATE_LIMIT_TIME_WINDOW: ${RATE_LIMIT_WINDOW:-1 minute}
+    depends_on:
+      admin-api:
+        condition: service_healthy
+      customer-api:
+        condition: service_healthy
+      schedule-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:4000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - app-network
+      - coolify
+
+  customer-web:
+    image: ghcr.io/node-mono-repo-template/customer-web:main
+    pull_policy: always
+    expose:
+      - "3000"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
+      - coolify
+
+  admin-web:
+    image: ghcr.io/node-mono-repo-template/admin-web:main
+    pull_policy: always
+    expose:
+      - "80"
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
+      - coolify
+
+  cms:
+    image: ghcr.io/node-mono-repo-template/cms:main
+    pull_policy: always
+    expose:
+      - "4005"
+    environment:
+      NODE_ENV: production
+      DOTNET_ENVIRONMENT: Production
+      PORT: "4005"
+      DATABASE_URL: ${DATABASE_URL}
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:-}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:4005/manager/login || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - app-network
+      - coolify
+
+  automation:
+    image: ghcr.io/node-mono-repo-template/automation:main
+    pull_policy: always
+    expose:
+      - "4006"
+    environment:
+      NODE_ENV: production
+      DOTNET_ENVIRONMENT: Production
+      PORT: "4006"
+      DATABASE_URL: ${DATABASE_URL}
+      CORS_ORIGIN: ${ADMIN_WEB_URL}
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:-}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:4006/api/v1/ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - app-network
+      - coolify
+
+networks:
+  app-network:
+    driver: bridge
+  coolify:
+    external: true

@@ -1,0 +1,61 @@
+@inject IHttpClientFactory HttpClientFactory
+@inject JsonSerializerOptions JsonOptions
+
+<div class="bg-card rounded-lg shadow-lg p-6 border-2 border-accent">
+    <h2 class="text-2xl font-bold text-foreground mb-4">🌐 HttpClient + Polly Test</h2>
+    <div class="space-y-4">
+        <button
+            @onclick="FetchDataAsync"
+            disabled="@_loading"
+            class="w-full px-4 py-2 text-primary-foreground rounded transition-opacity @(_loading ? "bg-muted-foreground cursor-not-allowed" : "bg-primary hover:opacity-90")">
+            @(_loading ? "Loading..." : "Fetch Data from API")
+        </button>
+
+        @if (_error is not null)
+        {
+            <div class="p-4 bg-destructive/10 border border-destructive/20 text-destructive rounded">
+                <p class="font-semibold">Error:</p>
+                <p class="text-sm">@_error</p>
+            </div>
+        }
+
+        @if (_data is not null)
+        {
+            <div class="p-4 bg-primary/10 border border-primary/20 rounded">
+                <p class="font-semibold text-foreground">✅ Success! Data fetched:</p>
+                <div class="mt-2 text-sm text-muted-foreground">
+                    <p><strong>ID:</strong> @_data.Id</p>
+                    <p><strong>Title:</strong> @_data.Title</p>
+                    <p class="mt-2"><strong>Body:</strong> @_data.Body</p>
+                </div>
+            </div>
+        }
+
+        <p class="text-sm text-muted-foreground text-center">✅ Named HttpClient with Polly retry (408/429/5xx, exponential backoff)</p>
+    </div>
+</div>
+
+@code {
+    private DemoPost? _data;
+    private string? _error;
+    private bool _loading;
+
+    private async Task FetchDataAsync()
+    {
+        _loading = true;
+        _error = null;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("JsonPlaceholder");
+            _data = await client.GetFromJsonAsync<DemoPost>("posts/1", JsonOptions);
+        }
+        catch (HttpRequestException ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

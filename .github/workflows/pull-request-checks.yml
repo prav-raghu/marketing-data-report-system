@@ -1,0 +1,97 @@
+name: Pull Request Checks
+
+on:
+    pull_request:
+        types: [opened, synchronize, reopened, edited]
+
+permissions:
+    contents: read
+    pull-requests: write
+
+jobs:
+    pr-title:
+        name: PR Title Convention
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check PR title
+              uses: amannn/action-semantic-pull-request@v5
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              with:
+                  types: |
+                      feat
+                      fix
+                      docs
+                      style
+                      refactor
+                      perf
+                      test
+                      build
+                      ci
+                      chore
+                      revert
+                  requireScope: false
+                  subjectPattern: ^(?![A-Z]).+$
+                  subjectPatternError: |
+                      The subject "{subject}" found in the pull request title "{title}"
+                      should start with a lowercase letter.
+                  ignoreLabels: |
+                      bot
+                      dependencies
+                  headerPattern: '^(\w*)(?:\(([\w$.\-*/ ]*)\))?: (.*)$'
+                  headerPatternCorrespondence: type, scope, subject
+
+    # Frontend-only, in the sense that apps/backend/* services aren't shipped
+    # to a browser and have no payload-size concern the way a WASM bundle
+    # does. admin-web and customer-web are .NET (Blazor) now,
+    # not pnpm — this measures each app's published wwwroot (the actual
+    # payload a browser downloads), not a pnpm dist/.next directory.
+    size-check:
+        name: WASM Bundle Size Check
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout base
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.base_ref }}
+                  path: base
+
+            - name: Checkout PR
+              uses: actions/checkout@v4
+              with:
+                  path: pr
+
+            - name: Setup .NET
+              uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: "10.0.x"
+
+            - name: Publish base
+              working-directory: base
+              run: |
+                  dotnet publish apps/frontend/admin-web/src/AdminWeb.csproj -c Release -o /tmp/base-admin
+                  dotnet publish apps/frontend/customer-web/src/CustomerWeb.csproj -c Release -o /tmp/base-customer
+              continue-on-error: true
+
+            - name: Publish PR
+              working-directory: pr
+              run: |
+                  dotnet publish apps/frontend/admin-web/src/AdminWeb.csproj -c Release -o /tmp/pr-admin
+                  dotnet publish apps/frontend/customer-web/src/CustomerWeb.csproj -c Release -o /tmp/pr-customer
+
+            - name: Compare bundle sizes
+              run: |
+                  echo "## WASM Bundle Size Comparison (published wwwroot)" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "| App | Base | PR |" >> $GITHUB_STEP_SUMMARY
+                  echo "|-----|------|-----|" >> $GITHUB_STEP_SUMMARY
+
+                  for pair in "admin-web:/tmp/base-admin/wwwroot:/tmp/pr-admin/wwwroot" "customer-web:/tmp/base-customer/wwwroot:/tmp/pr-customer/wwwroot"; do
+                    NAME="${pair%%:*}"
+                    REST="${pair#*:}"
+                    BASE_DIR="${REST%%:*}"
+                    PR_DIR="${REST##*:}"
+                    BASE_SIZE=$([ -d "$BASE_DIR" ] && du -sb "$BASE_DIR" | cut -f1 || echo "0 (new app)")
+                    PR_SIZE=$([ -d "$PR_DIR" ] && du -sb "$PR_DIR" | cut -f1 || echo "0")
+                    echo "| $NAME | ${BASE_SIZE} bytes | ${PR_SIZE} bytes |" >> $GITHUB_STEP_SUMMARY
+                  done

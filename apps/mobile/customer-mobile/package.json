@@ -1,0 +1,14 @@
+{
+    "name": "customer-mobile",
+    "private": true,
+    "version": "0.1.0",
+    "type": "module",
+    "scripts": {
+        "build:css": "tailwindcss -i ./src/wwwroot/css/input.css -o ./src/wwwroot/css/app.css --minify",
+        "watch:css": "tailwindcss -i ./src/wwwroot/css/input.css -o ./src/wwwroot/css/app.css --watch"
+    },
+    "devDependencies": {
+        "@tailwindcss/cli": "^4.3.0",
+        "tailwindcss": "^4.3.0"
+    }
+}

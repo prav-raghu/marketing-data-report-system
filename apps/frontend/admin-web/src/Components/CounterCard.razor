@@ -1,0 +1,27 @@
+@inject CounterState CounterState
+@implements IDisposable
+
+<div class="bg-card rounded-lg shadow-lg p-6 border-2 border-primary">
+    <h2 class="text-2xl font-bold text-foreground mb-4">🔢 Shared-State Counter</h2>
+    <div class="flex flex-col items-center space-y-4">
+        <div class="text-5xl font-bold text-primary">@CounterState.Count</div>
+        <div class="flex gap-2">
+            <button @onclick="CounterState.Decrement" class="px-4 py-2 bg-destructive text-destructive-foreground rounded hover:opacity-90 transition-opacity">
+                - Decrement
+            </button>
+            <button @onclick="CounterState.Reset" class="px-4 py-2 bg-secondary text-secondary-foreground rounded hover:opacity-90 transition-opacity">
+                Reset
+            </button>
+            <button @onclick="CounterState.Increment" class="px-4 py-2 bg-primary text-primary-foreground rounded hover:opacity-90 transition-opacity">
+                + Increment
+            </button>
+        </div>
+        <p class="text-sm text-muted-foreground">✅ Held in a scoped DI service — persists across route changes</p>
+    </div>
+</div>
+
+@code {
+    protected override void OnInitialized() => CounterState.Changed += StateHasChanged;
+
+    public void Dispose() => CounterState.Changed -= StateHasChanged;
+}

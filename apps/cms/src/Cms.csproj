@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\common\DotNetMonoRepoTemplate.Logging\DotNetMonoRepoTemplate.Logging.csproj" />
+    <ProjectReference Include="..\..\..\common\DotNetMonoRepoTemplate.Observability\DotNetMonoRepoTemplate.Observability.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Piranha" />
+    <PackageReference Include="Piranha.AttributeBuilder" />
+    <PackageReference Include="Piranha.Local.FileStorage" />
+    <PackageReference Include="Piranha.AspNetCore" />
+    <PackageReference Include="Piranha.AspNetCore.Hosting" />
+    <PackageReference Include="Piranha.AspNetCore.Identity" />
+    <PackageReference Include="Piranha.AspNetCore.Identity.PostgreSQL" />
+    <PackageReference Include="Piranha.Data.EF" />
+    <PackageReference Include="Piranha.Data.EF.PostgreSql" />
+    <PackageReference Include="Piranha.Manager" />
+    <PackageReference Include="Piranha.Manager.TinyMCE" />
+    <PackageReference Include="Piranha.ImageSharp" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,249 @@
+@page "/settings/security"
+@attribute [Authorize]
+@inject AuthService AuthService
+@inject UserService UserService
+@inject IValidator<Verify2FARequest> VerifyValidator
+@inject IValidator<Disable2FARequest> DisableValidator
+
+<div class="min-h-screen bg-background py-12 px-4">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-card border border-border rounded-lg shadow-xl p-8">
+            <h1 class="text-3xl font-bold text-foreground mb-2">Two-factor authentication</h1>
+            <a href="/" class="text-sm text-primary hover:underline">← Back to dashboard</a>
+
+            @if (_loadingProfile)
+            {
+                <p class="text-muted-foreground mt-6">Loading...</p>
+            }
+            else if (_profileError is not null)
+            {
+                <div class="mt-6 p-3 bg-destructive/10 border border-destructive/20 rounded text-destructive text-sm">@_profileError</div>
+            }
+            else if (_twoFactorEnabled)
+            {
+                <div class="mt-8">
+                    <p class="text-foreground mb-4">Two-factor authentication is currently <strong class="text-primary">enabled</strong> on your account.</p>
+                    <p class="text-muted-foreground mb-6">Disabling it requires a fresh verification code, the same as enabling it — treat it with the same weight as a password change.</p>
+
+                    @if (_actionError is not null)
+                    {
+                        <div class="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded text-destructive text-sm">@_actionError</div>
+                    }
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-foreground mb-1" for="disable-code">Verification code</label>
+                        <input
+                            id="disable-code"
+                            type="text"
+                            inputmode="numeric"
+                            maxlength="6"
+                            class="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                            @bind="_disableRequest.Token" />
+                        @if (_errors.TryGetValue(nameof(Disable2FARequest.Token), out var disableError))
+                        {
+                            <p class="mt-1 text-xs text-destructive">@disableError</p>
+                        }
+                    </div>
+
+                    <button
+                        @onclick="HandleDisableAsync"
+                        disabled="@_submitting"
+                        class="px-5 py-2.5 bg-destructive text-destructive-foreground rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50">
+                        @(_submitting ? "Disabling..." : "Disable two-factor authentication")
+                    </button>
+                </div>
+            }
+            else if (_setupData is null)
+            {
+                <div class="mt-8">
+                    <p class="text-muted-foreground mb-6">Two-factor authentication is currently disabled. Enabling it requires an authenticator app (Google Authenticator, Authy, 1Password, etc).</p>
+                    <button
+                        @onclick="HandleSetupAsync"
+                        disabled="@_submitting"
+                        class="px-5 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50">
+                        @(_submitting ? "Starting setup..." : "Enable two-factor authentication")
+                    </button>
+                    @if (_actionError is not null)
+                    {
+                        <div class="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded text-destructive text-sm">@_actionError</div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="mt-8">
+                    <p class="text-foreground mb-4">Scan the code, then enter it below to finish enabling 2FA. Your account is not protected yet.</p>
+                    <img src="@_setupData.QrCode" alt="Scan this QR code with your authenticator app" class="mx-auto mb-4 border border-border rounded-lg" />
+                    <p class="text-sm text-muted-foreground mb-6 text-center">
+                        Can't scan? Enter this code manually: <code class="bg-muted px-2 py-1 rounded">@_setupData.Secret</code>
+                    </p>
+
+                    @if (_actionError is not null)
+                    {
+                        <div class="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded text-destructive text-sm">@_actionError</div>
+                    }
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-foreground mb-1" for="verify-code">Verification code</label>
+                        <input
+                            id="verify-code"
+                            type="text"
+                            inputmode="numeric"
+                            maxlength="6"
+                            class="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                            @bind="_verifyRequest.Token" />
+                        @if (_errors.TryGetValue(nameof(Verify2FARequest.Token), out var verifyError))
+                        {
+                            <p class="mt-1 text-xs text-destructive">@verifyError</p>
+                        }
+                    </div>
+
+                    <button
+                        @onclick="HandleVerifyAsync"
+                        disabled="@_submitting"
+                        class="px-5 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50">
+                        @(_submitting ? "Verifying..." : "Verify and enable")
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private readonly Verify2FARequest _verifyRequest = new();
+    private readonly Disable2FARequest _disableRequest = new();
+    private readonly Dictionary<string, string> _errors = new();
+
+    private bool _loadingProfile = true;
+    private bool _submitting;
+    private bool _twoFactorEnabled;
+    private string? _profileError;
+    private string? _actionError;
+    private Setup2FAData? _setupData;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var profile = await AuthService.GetCurrentUserAsync();
+            _twoFactorEnabled = profile?.TwoFactorEnabled ?? false;
+        }
+        catch (HttpRequestException)
+        {
+            _profileError = "Could not load your account settings. Please try again.";
+        }
+        finally
+        {
+            _loadingProfile = false;
+        }
+    }
+
+    private async Task HandleSetupAsync()
+    {
+        _actionError = null;
+        _submitting = true;
+        try
+        {
+            var result = await UserService.Setup2FAAsync();
+            if (result is { IsSuccessful: true, Data: not null })
+            {
+                _setupData = result.Data;
+            }
+            else
+            {
+                _actionError = result?.Message ?? "Could not start two-factor setup.";
+            }
+        }
+        catch (HttpRequestException)
+        {
+            _actionError = "Could not start two-factor setup.";
+        }
+        finally
+        {
+            _submitting = false;
+        }
+    }
+
+    private async Task HandleVerifyAsync()
+    {
+        _actionError = null;
+        var validation = await VerifyValidator.ValidateAsync(_verifyRequest);
+        _errors.Clear();
+        if (!validation.IsValid)
+        {
+            foreach (var failure in validation.Errors)
+            {
+                if (!_errors.ContainsKey(failure.PropertyName))
+                {
+                    _errors[failure.PropertyName] = failure.ErrorMessage;
+                }
+            }
+            return;
+        }
+
+        _submitting = true;
+        try
+        {
+            var result = await UserService.Verify2FAAsync(_verifyRequest);
+            if (result is { IsSuccessful: true })
+            {
+                _twoFactorEnabled = true;
+                _setupData = null;
+            }
+            else
+            {
+                _actionError = result?.Message ?? "Invalid verification code";
+            }
+        }
+        catch (HttpRequestException)
+        {
+            _actionError = "Invalid verification code";
+        }
+        finally
+        {
+            _submitting = false;
+        }
+    }
+
+    private async Task HandleDisableAsync()
+    {
+        _actionError = null;
+        var validation = await DisableValidator.ValidateAsync(_disableRequest);
+        _errors.Clear();
+        if (!validation.IsValid)
+        {
+            foreach (var failure in validation.Errors)
+            {
+                if (!_errors.ContainsKey(failure.PropertyName))
+                {
+                    _errors[failure.PropertyName] = failure.ErrorMessage;
+                }
+            }
+            return;
+        }
+
+        _submitting = true;
+        try
+        {
+            var result = await UserService.Disable2FAAsync(_disableRequest);
+            if (result is { IsSuccessful: true })
+            {
+                _twoFactorEnabled = false;
+                _disableRequest.Token = string.Empty;
+            }
+            else
+            {
+                _actionError = result?.Message ?? "Invalid verification code";
+            }
+        }
+        catch (HttpRequestException)
+        {
+            _actionError = "Invalid verification code";
+        }
+        finally
+        {
+            _submitting = false;
+        }
+    }
+}

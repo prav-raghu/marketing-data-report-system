@@ -1,0 +1,52 @@
+@page "/"
+@using CustomerWeb.Client.Pages
+
+<PageTitle>Customer Web App</PageTitle>
+<HeadContent>
+    <meta name="description" content="A production-ready customer-facing web application built with Next.js, TypeScript, and Tailwind CSS." />
+    <meta name="keywords" content="next.js, react, typescript, web application, customer portal" />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:url" content="https://example.com" />
+    <meta property="og:site_name" content="Customer Web App" />
+    <meta property="og:title" content="Customer Web App" />
+    <meta property="og:description" content="A production-ready customer-facing web application built with Next.js, TypeScript, and Tailwind CSS." />
+    <meta property="og:image" content="https://example.com/og-image.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@@example" />
+    <meta name="twitter:title" content="Customer Web App" />
+    <meta name="twitter:description" content="A production-ready customer-facing web application built with Next.js, TypeScript, and Tailwind CSS." />
+</HeadContent>
+
+<div class="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 py-12 px-4">
+    <div class="max-w-6xl mx-auto">
+        <header class="text-center mb-12">
+            <h1 class="text-5xl font-bold text-gray-800 mb-4">Customer Web Template</h1>
+            <p class="text-xl text-gray-600">Blazor Web App — static SSR + WebAssembly interactivity</p>
+            <div class="flex justify-center gap-4 mt-6">
+                <a href="/about" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md">
+                    Go to About Page →
+                </a>
+            </div>
+        </header>
+
+        <div class="mb-6">
+            <CounterCard @rendermode="InteractiveWebAssembly" />
+        </div>
+
+        <footer class="text-center mt-12 p-6 bg-white rounded-lg shadow-md">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3">✅ Rendering model:</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div class="p-3 bg-green-50 rounded border border-green-200">
+                    <div class="font-semibold text-green-700">📄 Static SSR</div>
+                    <div class="text-gray-600">This page's title, meta tags, and shell — crawlable with no JS</div>
+                </div>
+                <div class="p-3 bg-blue-50 rounded border border-blue-200">
+                    <div class="font-semibold text-blue-700">⚡ WebAssembly island</div>
+                    <div class="text-gray-600">The counter above hydrates to WASM after the initial paint</div>
+                </div>
+            </div>
+        </footer>
+    </div>
+</div>
