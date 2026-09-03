@@ -1,0 +1,16 @@
+packages:
+  - "apps/frontend/*"
+  - "apps/mobile/*"
+  # apps/backend is ASP.NET Core (.NET 10) now — dotnet CLI + NuGet CPM, not a pnpm workspace member
+  # apps/cms is excluded — managed independently with npm
+  # common/* is C# class libraries (DotNetMonoRepoTemplate.*) now — not a pnpm workspace member
+
+verifyDepsBeforeRun: false
+
+allowBuilds:
+  "@sentry/cli": true
+  core-js: true
+  cypress: true
+  esbuild: true
+  sharp: true
+  unrs-resolver: true

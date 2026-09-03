@@ -1,0 +1,389 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "🏗️ Build: Common Packages",
+            "type": "shell",
+            "command": "pnpm turbo run build --filter=\"./common/**\"",
+            "group": "build",
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            },
+            "problemMatcher": ["$tsc"]
+        },
+        {
+            "label": "📦 Install Dependencies",
+            "type": "shell",
+            "command": "pnpm install",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🔨 Build All",
+            "type": "shell",
+            "command": "pnpm build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": ["$tsc"]
+        },
+        {
+            "label": "🧹 Clean All",
+            "type": "shell",
+            "command": "pnpm clean",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🧪 Run All Tests",
+            "type": "shell",
+            "command": "pnpm test",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🧪 Run Tests (Watch)",
+            "type": "shell",
+            "command": "pnpm test -- --watch",
+            "group": "test",
+            "isBackground": true,
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🔍 Lint All",
+            "type": "shell",
+            "command": "pnpm lint",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": ["$eslint-stylish"]
+        },
+        {
+            "label": "✨ Format All",
+            "type": "shell",
+            "command": "pnpm format",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "👤 Dev: Customer API",
+            "type": "shell",
+            "command": "pnpm dev:customer-api",
+            "group": "none",
+            "isBackground": true,
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "group": "backend"
+            },
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(error|warning):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".",
+                    "endsPattern": "Server listening"
+                }
+            }
+        },
+        {
+            "label": "🔐 Dev: Admin API",
+            "type": "shell",
+            "command": "pnpm dev:admin-api",
+            "group": "none",
+            "isBackground": true,
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "group": "backend"
+            },
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(error|warning):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".",
+                    "endsPattern": "Server listening"
+                }
+            }
+        },
+        {
+            "label": "📅 Dev: Schedule API",
+            "type": "shell",
+            "command": "pnpm dev:schedule-api",
+            "group": "none",
+            "isBackground": true,
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "group": "backend"
+            },
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(error|warning):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".",
+                    "endsPattern": "Server listening"
+                }
+            }
+        },
+        {
+            "label": "🌐 Dev: Customer Web",
+            "type": "shell",
+            "command": "pnpm dev:customer-web",
+            "group": "none",
+            "isBackground": true,
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "group": "frontend"
+            },
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(error|warning):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".",
+                    "endsPattern": "ready"
+                }
+            }
+        },
+        {
+            "label": "🛠️ Dev: Admin Web",
+            "type": "shell",
+            "command": "pnpm dev:admin-web",
+            "group": "none",
+            "isBackground": true,
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "group": "frontend"
+            },
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(error|warning):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".",
+                    "endsPattern": "ready"
+                }
+            }
+        },
+        {
+            "label": "🐳 Docker: Start Dev",
+            "type": "shell",
+            "command": "docker compose -f devops/docker-compose.dev.yml up -d",
+            "group": "none",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🐳 Docker: Stop Dev",
+            "type": "shell",
+            "command": "docker compose -f devops/docker-compose.dev.yml down",
+            "group": "none",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🐳 Docker: View Logs",
+            "type": "shell",
+            "command": "docker compose -f devops/docker-compose.dev.yml logs -f",
+            "group": "none",
+            "isBackground": true,
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🗄️ Prisma: Generate",
+            "type": "shell",
+            "command": "pnpm --filter @node-mono-repo-template/database prisma:generate",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🗄️ Prisma: Migrate Dev",
+            "type": "shell",
+            "command": "pnpm --filter @node-mono-repo-template/database prisma:migrate",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🗄️ Prisma: Studio",
+            "type": "shell",
+            "command": "pnpm --filter @node-mono-repo-template/database prisma:studio",
+            "group": "none",
+            "isBackground": true,
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🔄 Update Dependencies",
+            "type": "shell",
+            "command": "pnpm update-deps",
+            "group": "none",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Build: Customer API",
+            "type": "shell",
+            "command": "pnpm --filter @node-mono-repo-template/customer-api build",
+            "group": "build",
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            },
+            "problemMatcher": ["$tsc"]
+        },
+        {
+            "label": "Build: Admin API",
+            "type": "shell",
+            "command": "pnpm --filter @node-mono-repo-template/admin-api build",
+            "group": "build",
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            },
+            "problemMatcher": ["$tsc"]
+        },
+        {
+            "label": "Build: Schedule API",
+            "type": "shell",
+            "command": "pnpm --filter @node-mono-repo-template/schedule-api build",
+            "group": "build",
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            },
+            "problemMatcher": ["$tsc"]
+        },
+        {
+            "label": "🔥 Start Full Backend Stack",
+            "dependsOn": [
+                "🐳 Docker: Start Dev",
+                "👤 Dev: Customer API",
+                "🔐 Dev: Admin API",
+                "📅 Dev: Schedule API"
+            ],
+            "dependsOrder": "sequence",
+            "group": "none",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🤖 Automation: Run WorkflowApi (Elsa)",
+            "type": "shell",
+            "command": "dotnet run --project apps/automation/src/WorkflowApi.csproj",
+            "group": "none",
+            "isBackground": true,
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "group": "automation"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "📝 CMS: Run Piranha",
+            "type": "shell",
+            "command": "dotnet run --project apps/cms/src/Cms.csproj",
+            "group": "none",
+            "isBackground": true,
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "group": "cms"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

@@ -1,0 +1,82 @@
+{
+    "permissions": {
+        "allow": [
+            "Bash(pnpm install*)",
+            "Bash(pnpm add *)",
+            "Bash(pnpm remove *)",
+            "Bash(pnpm list*)",
+            "Bash(pnpm --filter @node-mono-repo-template/* build)",
+            "Bash(pnpm --filter @node-mono-repo-template/* dev)",
+            "Bash(pnpm --filter @node-mono-repo-template/* test*)",
+            "Bash(pnpm --filter @node-mono-repo-template/* typecheck)",
+            "Bash(pnpm --filter @node-mono-repo-template/* tsc --noEmit)",
+            "Bash(pnpm --filter @node-mono-repo-template/* prisma:generate)",
+            "Bash(pnpm --filter @node-mono-repo-template/* prisma:validate)",
+            "Bash(pnpm --filter admin-web build)",
+            "Bash(pnpm --filter admin-web dev)",
+            "Bash(pnpm --filter admin-web typecheck)",
+            "Bash(pnpm --filter customer-web build)",
+            "Bash(pnpm --filter customer-web dev)",
+            "Bash(pnpm --filter customer-web typecheck)",
+            "Bash(pnpm build)",
+            "Bash(pnpm test*)",
+            "Bash(pnpm lint*)",
+            "Bash(pnpm typecheck)",
+            "Bash(pnpm format:check)",
+            "Bash(grep *)",
+            "Bash(find *)",
+            "Bash(git status)",
+            "Bash(git diff*)",
+            "Bash(git log*)",
+            "Bash(git pull*)",
+            "Bash(git push*)",
+            "Bash(git commit*)"
+        ],
+        "deny": [
+            "Bash(git merge*)",
+            "Bash(git rebase*)",
+            "Bash(git reset*)",
+            "Bash(git clean*)",
+            "Bash(git checkout -- *)",
+            "Bash(git restore *)",
+            "Bash(*prisma migrate*)",
+            "Bash(*prisma db push*)",
+            "Bash(*prisma db reset*)",
+            "Bash(rm -rf*)",
+            "Bash(docker system prune*)",
+            "Bash(docker volume rm*)",
+            "Bash(docker compose down -v*)",
+            "Bash(docker-compose down -v*)",
+            "Bash(terraform destroy*)",
+            "Bash(kubectl delete*)"
+        ]
+    },
+    "hooks": {
+        "PreToolUse": [
+            {
+                "matcher": "Bash",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash .claude/hooks/guard-main-branch.sh"
+                    }
+                ]
+            }
+        ],
+        "PostToolUse": [
+            {
+                "matcher": "Edit|Write",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash .claude/hooks/typecheck-changed.sh"
+                    },
+                    {
+                        "type": "command",
+                        "command": "bash .claude/hooks/validate-no-any.sh"
+                    }
+                ]
+            }
+        ]
+    }
+}

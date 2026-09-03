@@ -1,0 +1,28 @@
+name: Version Control
+
+on:
+    push:
+        branches: [main]
+
+permissions:
+    contents: write
+    pull-requests: write
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: false
+
+jobs:
+    version-control:
+        name: Version Control
+        runs-on: ubuntu-latest
+        outputs:
+            release_created: ${{ steps.release.outputs.release_created }}
+            tag_name: ${{ steps.release.outputs.tag_name }}
+        steps:
+            - name: Run release-please
+              id: release
+              uses: googleapis/release-please-action@v4
+              with:
+                  config-file: release-please-config.json
+                  manifest-file: .release-please-manifest.json
