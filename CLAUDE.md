@@ -209,13 +209,18 @@ Two, split by stack — don't cross them:
 | admin-api | 4001 |
 | customer-api | 4002 |
 | schedule-api | 4003 |
+| ingestion-api | 4007 |
 | customer-web | 3000 (ASP.NET Core host, replaces the Node `output: standalone` server — same port) |
 | admin-web | 80 (nginx serving the published `wwwroot`, Traefik-routed in production — same deployment shape as the retired Vite SPA); `dotnet run` dev server has no fixed port convention yet |
 | customer-mobile | n/a — not deployed as a network service; a .NET MAUI Blazor Hybrid app ships through app stores, not a listening port. The retired Ionic app's Vite dev ports (5173/5174) no longer apply. |
 | cms | 4005 |
 | automation (workflow-api) | 4006 |
 
-All four backend services are ASP.NET Core now; the ports are unchanged from the Node era so nothing downstream (gateway routing, frontend API base URLs, Coolify config) needed to move. The Phase 4 Blazor cutover kept the same two frontend ports (3000, 80) for the same reason — nothing downstream needed to move. `cms`/`automation` are new port assignments, not carried over — Strapi and n8n used their own default ports (1337, 5678) which never needed to match this table.
+`ingestion-api` (4007) is new in the marketing data platform work — see
+`documentation/architecture/marketing-data-platform.md`; it is the control plane and
+extraction host for marketing data ingestion and is not part of the original template.
+
+All four original backend services are ASP.NET Core now; the ports are unchanged from the Node era so nothing downstream (gateway routing, frontend API base URLs, Coolify config) needed to move. The Phase 4 Blazor cutover kept the same two frontend ports (3000, 80) for the same reason — nothing downstream needed to move. `cms`/`automation` are new port assignments, not carried over — Strapi and n8n used their own default ports (1337, 5678) which never needed to match this table.
 
 ## Using this as a template — project name substitution
 

@@ -99,6 +99,41 @@ services:
       - app-network
       - coolify
 
+  ingestion-api:
+    image: ghcr.io/node-mono-repo-template/ingestion-api:main
+    pull_policy: always
+    expose:
+      - "4007"
+    environment:
+      NODE_ENV: production
+      DOTNET_ENVIRONMENT: Production
+      PORT: "4007"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      REDIS_TLS_REJECT_UNAUTHORIZED: ${REDIS_TLS_REJECT_UNAUTHORIZED:-false}
+      INGESTION_API_KEY: ${INGESTION_API_KEY}
+      RAW_ZONE_CONNECTION_STRING: ${RAW_ZONE_CONNECTION_STRING}
+      RAW_ZONE_CONTAINER: ${RAW_ZONE_CONTAINER:-raw}
+      REPORTING_TIMEZONE: ${REPORTING_TIMEZONE:-Africa/Johannesburg}
+      REPORTING_CURRENCY: ${REPORTING_CURRENCY:-ZAR}
+      MAX_CONCURRENT_EXTRACTIONS: ${MAX_CONCURRENT_EXTRACTIONS:-20}
+      RATE_LIMIT_WINDOW: ${RATE_LIMIT_WINDOW}
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX}
+      CORS_ORIGIN: ${ADMIN_WEB_URL}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:4007/api/v1/ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - app-network
+      - coolify
+
   schedule-api:
     image: ghcr.io/node-mono-repo-template/schedule-api:main
     pull_policy: always

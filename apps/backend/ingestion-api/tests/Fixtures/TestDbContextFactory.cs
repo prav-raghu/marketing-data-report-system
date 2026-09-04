@@ -1,0 +1,14 @@
+using DotNetMonoRepoTemplate.Database;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+
+namespace IngestionApi.Tests.Fixtures;
+
+public static class TestDbContextFactory
+{
+    public static AppDbContext Create() =>
+        new(new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .ConfigureWarnings(warnings => warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning))
+            .Options);
+}

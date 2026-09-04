@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotNetMonoRepoTemplate.Logging\DotNetMonoRepoTemplate.Logging.csproj" />
+    <ProjectReference Include="..\DotNetMonoRepoTemplate.Types\DotNetMonoRepoTemplate.Types.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Storage.Blobs" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+
+</Project>

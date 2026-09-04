@@ -27,6 +27,10 @@ documentation/
 
 ### Architecture
 
+- [Architecture Index](./architecture/README.md) - All architecture records
+- [Marketing Data Platform](./architecture/marketing-data-platform.md) - Multi-stream marketing ingestion on Azure (proposed)
+- [Marketing Canonical Data Model](./architecture/marketing-canonical-data-model.md) - Normalisation target schema and rules (proposed)
+- [Marketing Delivery Roadmap](./architecture/marketing-ingestion-roadmap.md) - Phasing, decisions and open questions (proposed)
 - [System Architecture](./architecture/system-overview.md) - High-level system design
 - [Microservices](./architecture/microservices.md) - Service architecture
 - [Database Schema](./architecture/database.md) - Database design
