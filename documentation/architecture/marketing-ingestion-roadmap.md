@@ -43,10 +43,14 @@ the ten control-plane entities and their EF Core configuration, and the
 tiering, plus a unit test suite. See
 [`apps/backend/ingestion-api/README.md`](../../apps/backend/ingestion-api/README.md).
 
-Two things are outstanding before this phase can be called done: the Terraform
-for the Azure resources, and a `dotnet build` and `dotnet test` pass — no .NET
-SDK was reachable in the environment that wrote the code, so none of it is
-compiler-verified yet.
+The build pass is done: `dotnet build DotNetMonoRepoTemplate.sln` succeeds with
+0 errors on .NET SDK 10.0.400 and all 49 `IngestionApi.Tests` pass, alongside the
+rest of the solution's suites.
+
+One thing is outstanding before this phase can be called done: the Terraform for
+the Azure resources. Beyond that, compiling is not running — the EF Core mapping
+has only been exercised against the in-memory provider, so a migration against
+real Postgres is the next thing that can actually invalidate this code.
 
 ### Phase 1 — First vertical slice (TikTok to dashboard)
 

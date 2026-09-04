@@ -2,9 +2,9 @@ namespace DotNetMonoRepoTemplate.Ingestion.Connectors;
 
 public interface ISourceConnector
 {
-    string SourceKey { get; }
+    public string SourceKey { get; }
 
-    SourceCapabilities Capabilities { get; }
+    public SourceCapabilities Capabilities { get; }
 
-    IAsyncEnumerable<SourceRecord> ExtractAsync(ExtractionRequest request, CancellationToken cancellationToken);
+    public IAsyncEnumerable<SourceRecord> ExtractAsync(ExtractionRequest request, CancellationToken cancellationToken);
 }

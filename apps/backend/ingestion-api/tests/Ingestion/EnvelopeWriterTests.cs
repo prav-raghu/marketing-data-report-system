@@ -117,7 +117,7 @@ public sealed class EnvelopeWriterTests
         SourceEntity = "ad_insights_daily",
         ContractVersion = "2026-06",
         AccountId = "act_884213",
-        Window = ExtractionWindow.Single(new DateOnly(2026, 9, 1)),
+        Window = ExtractionWindow.ForSingleDay(new DateOnly(2026, 9, 1)),
         Tier = AccountTier.Tier1,
     };
 

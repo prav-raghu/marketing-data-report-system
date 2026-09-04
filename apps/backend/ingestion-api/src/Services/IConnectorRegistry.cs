@@ -4,9 +4,9 @@ namespace IngestionApi.Services;
 
 public interface IConnectorRegistry
 {
-    IReadOnlyCollection<string> RegisteredKeys { get; }
+    public IReadOnlyCollection<string> RegisteredKeys { get; }
 
-    ISourceConnector Resolve(string sourceKey);
+    public ISourceConnector Resolve(string sourceKey);
 
-    bool TryResolve(string sourceKey, out ISourceConnector? connector);
+    public bool TryResolve(string sourceKey, out ISourceConnector? connector);
 }

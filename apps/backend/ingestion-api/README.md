@@ -17,15 +17,24 @@ connectors yet** — TikTok is Phase 1, Meta is Phase 2.
 `registeredConnectorKeys` array until the first connector is implemented. That is
 expected, not a misconfiguration.
 
-**Not yet compiled.** No .NET SDK was reachable in the environment that wrote
-this code (the SDK download host is blocked by network policy), so
-`dotnet build` has not been run against it. Per the repository rules this code
-is not trusted until it has been. Before relying on it, run:
+**Compiler-verified.** Built and tested on .NET SDK 10.0.400:
+`dotnet build DotNetMonoRepoTemplate.sln` reports 0 errors, and all 49 tests in
+`IngestionApi.Tests` pass.
 
 ```bash
 dotnet build DotNetMonoRepoTemplate.sln
 dotnet test apps/backend/ingestion-api/tests/IngestionApi.Tests.csproj
 ```
+
+What that does and does not establish: the code compiles under
+`WarningsAsErrors=Nullable` with `EnforceCodeStyleInBuild`, and the service
+layer behaves correctly against the EF Core in-memory provider. It has **not**
+been run against real Postgres, real Redis, or real Azure Blob storage, so the
+Npgsql-specific parts — the `jsonb` mapping, the enum-to-string conversions and
+the partial unique index `ix_ingestion_runs_single_in_flight` — are unproven
+until a migration is generated and applied. The in-memory provider ignores index
+filters entirely, so the database-level guard against two concurrent runs is
+currently enforced only by the service check the tests do cover.
 
 ## What the service does
 

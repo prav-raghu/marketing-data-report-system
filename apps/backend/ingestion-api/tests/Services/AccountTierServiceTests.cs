@@ -47,7 +47,7 @@ public sealed class AccountTierServiceTests
     }
 
     [Fact]
-    public async Task RecalculateAsync_ReturnsTheNumberOfTierChanges()
+    public async Task RecalculateAsync_CountsEveryConnectorWhoseTierMoved()
     {
         await using var db = TestDbContextFactory.Create();
         db.SourceConnectors.Add(new SourceConnectorBuilder()
@@ -66,7 +66,13 @@ public sealed class AccountTierServiceTests
 
         var changed = await service.RecalculateAsync(CancellationToken.None);
 
-        changed.Should().Be(1);
+        changed.Should().Be(2);
+
+        var connectors = await db.SourceConnectors
+            .OrderByDescending(c => c.TrailingNinetyDaySpendZar)
+            .ToListAsync();
+        connectors[0].Tier.Should().Be(AccountTier.Tier1);
+        connectors[1].Tier.Should().Be(AccountTier.Tier2);
     }
 
     [Fact]

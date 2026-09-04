@@ -18,5 +18,5 @@ public sealed record ExtractionWindow
         };
     }
 
-    public static ExtractionWindow Single(DateOnly date) => new() { StartDate = date, EndDate = date };
+    public static ExtractionWindow ForSingleDay(DateOnly date) => new() { StartDate = date, EndDate = date };
 }
