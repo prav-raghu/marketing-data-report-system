@@ -17,6 +17,8 @@ public sealed record IngestionApiOptions
     public required string TikTokBaseUrl { get; init; }
     public required int VendorRateLimitPerMinute { get; init; }
     public required int ConnectorTimeoutSeconds { get; init; }
+    public required string MetaBaseUrl { get; init; }
+    public required string MetaApiVersion { get; init; }
 
     public bool IsProduction => string.Equals(NodeEnv, "production", StringComparison.OrdinalIgnoreCase);
 }

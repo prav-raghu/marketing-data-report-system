@@ -14,6 +14,7 @@ using DotNetMonoRepoTemplate.Observability;
 using IngestionApi.Auth;
 using IngestionApi.Configuration;
 using IngestionApi.Connectors;
+using IngestionApi.Connectors.Meta;
 using IngestionApi.Connectors.TikTok;
 using IngestionApi.Dtos;
 using IngestionApi.Endpoints;
@@ -58,7 +59,17 @@ builder.Services.AddSingleton(new TikTokOptions
 {
     BaseAddress = new Uri(ingestionApiOptions.TikTokBaseUrl),
 });
-builder.Services.AddHttpClient<ISourceConnector, TikTokAdsConnector>(client =>
+builder.Services.AddHttpClient<ISourceConnector, TikTokAdsConnector>(TikTokApiContract.SourceKey, client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(ingestionApiOptions.ConnectorTimeoutSeconds);
+});
+
+builder.Services.AddSingleton(new MetaOptions
+{
+    BaseAddress = new Uri(ingestionApiOptions.MetaBaseUrl),
+    ApiVersion = ingestionApiOptions.MetaApiVersion,
+});
+builder.Services.AddHttpClient<ISourceConnector, MetaAdsConnector>(MetaApiContract.SourceKey, client =>
 {
     client.Timeout = TimeSpan.FromSeconds(ingestionApiOptions.ConnectorTimeoutSeconds);
 });

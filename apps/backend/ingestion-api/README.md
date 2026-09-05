@@ -9,14 +9,14 @@ Design background: [Marketing Data Platform](../../../documentation/architecture
 ## Status
 
 Phase 0 (control plane, envelope machinery, connector abstraction) is complete
-and replayed onto the post-Blazor-migration codebase, and the **first connector —
-TikTok — is in**. Meta is Phase 2.
+and replayed onto the post-Blazor-migration codebase. Two connectors are in:
+**TikTok** and **Meta**.
 
-`GET /internal/v1/connectors` now reports `tiktok_ads` in
+`GET /internal/v1/connectors` now reports `tiktok_ads` and `meta_ads` in
 `registeredConnectorKeys`.
 
 **Compiler-verified.** Built and tested on .NET SDK 10.0.400:
-`dotnet build DotNetMonoRepoTemplate.sln` reports 0 errors, and all 58 tests in
+`dotnet build DotNetMonoRepoTemplate.sln` reports 0 errors, and all 71 tests in
 `IngestionApi.Tests` pass.
 
 ```bash
@@ -125,6 +125,48 @@ Credentials resolve through `IConnectorSecretResolver` under the name
 `TIKTOK_ACCESS_TOKEN_<advertiser_id>`. The only implementation today reads
 configuration; a Key Vault implementation drops in behind the same interface
 without touching the connector.
+
+## The Meta connector — three phases, not one request
+
+Meta's insights endpoint is asynchronous, so the connector runs submit, poll,
+download rather than a single call:
+
+1. **Submit** a `POST` to `{version}/{account}/insights` with the field list,
+   breakdowns and time range. Meta returns a `report_run_id`.
+2. **Poll** `{version}/{report_run_id}` until `async_status` reaches
+   `Job Completed`. `Job Failed` and `Job Skipped` throw immediately rather than
+   spinning; exceeding `MaxPollAttempts` throws with the run id attached.
+3. **Download** `{version}/{report_run_id}/insights`, following
+   `paging.cursors.after` until a page returns no rows.
+
+Pagination deliberately rebuilds the next URL from the `after` cursor rather than
+following the absolute `paging.next` URL Meta supplies. Following a
+response-supplied absolute URL means issuing requests at a host the response
+chose, which is a needless server-side request forgery shape for no benefit.
+
+### Two decisions specific to Meta
+
+**`publisher_platform` is always requested**, whether or not the account's tier
+asks for breakdowns. It is the only thing separating Facebook rows from Instagram
+rows, and it is why Instagram is not a separate connector — one pull yields both
+platforms and costs one account's rate-limit budget instead of two. It lands in
+the idempotency key, so the two platforms never collide on the same key.
+
+**`actions[]` and `action_values[]` are preserved verbatim.** Filtering them to
+the configured conversion action types and summing is a semantic decision that
+belongs in the bronze-to-silver job, where it can be changed and replayed against
+history without redeploying an extractor. The connector does no semantic mapping,
+per the thin-edge-transform principle in the architecture document. The same
+reasoning is why `inline_link_clicks` is requested alongside `clicks` rather than
+one being chosen here.
+
+**Not proven: the vendor API specifics.** Meta's developer documentation is
+egress-blocked from the environment that wrote this, exactly as TikTok's was. The
+API version, path shape, `async_status` string values, field names and breakdown
+names live in `Connectors/Meta/MetaApiContract.cs` and `MetaOptions.ApiVersion`.
+Verify those against current docs before a live run. The three-phase flow,
+cursor pagination, retry behaviour and key construction are covered by 13 tests
+and do not depend on those names being right.
 
 ## Writing a connector
 

@@ -25,5 +25,11 @@ public sealed class IngestionApiOptionsValidator : AbstractValidator<IngestionAp
             .WithMessage("TIKTOK_BASE_URL must be an absolute URI");
         RuleFor(x => x.VendorRateLimitPerMinute).GreaterThan(0);
         RuleFor(x => x.ConnectorTimeoutSeconds).InclusiveBetween(1, 600);
+        RuleFor(x => x.MetaBaseUrl)
+            .NotEmpty()
+            .Must(value => Uri.TryCreate(value, UriKind.Absolute, out _))
+            .WithMessage("META_BASE_URL must be an absolute URI");
+        RuleFor(x => x.MetaApiVersion).NotEmpty().Matches("^v[0-9]+\\.[0-9]+$")
+            .WithMessage("META_API_VERSION must look like 'v21.0'");
     }
 }

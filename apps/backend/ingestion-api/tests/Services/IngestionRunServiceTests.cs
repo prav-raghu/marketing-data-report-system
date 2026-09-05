@@ -209,5 +209,7 @@ public sealed class IngestionRunServiceTests
         TikTokBaseUrl = "https://business-api.tiktok.test/",
         VendorRateLimitPerMinute = 500,
         ConnectorTimeoutSeconds = 100,
+        MetaBaseUrl = "https://graph.facebook.test/",
+        MetaApiVersion = "v21.0",
     };
 }

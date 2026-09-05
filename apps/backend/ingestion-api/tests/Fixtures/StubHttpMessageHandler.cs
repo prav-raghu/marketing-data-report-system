@@ -10,6 +10,8 @@ public sealed class StubHttpMessageHandler : HttpMessageHandler
 
     public List<string> AccessTokens { get; } = [];
 
+    public List<string> FormBodies { get; } = [];
+
     public StubHttpMessageHandler EnqueueJson(string json, HttpStatusCode status = HttpStatusCode.OK)
     {
         _responses.Enqueue(new HttpResponseMessage(status)
@@ -25,13 +27,18 @@ public sealed class StubHttpMessageHandler : HttpMessageHandler
         return this;
     }
 
-    protected override Task<HttpResponseMessage> SendAsync(
+    protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
         if (request.RequestUri is not null)
         {
             Requests.Add(request.RequestUri);
+        }
+
+        if (request.Content is not null)
+        {
+            FormBodies.Add(await request.Content.ReadAsStringAsync(cancellationToken));
         }
 
         if (request.Headers.TryGetValues("Access-Token", out var tokens))
@@ -44,6 +51,6 @@ public sealed class StubHttpMessageHandler : HttpMessageHandler
             throw new InvalidOperationException("No stub response was queued for this request.");
         }
 
-        return Task.FromResult(_responses.Dequeue());
+        return _responses.Dequeue();
     }
 }

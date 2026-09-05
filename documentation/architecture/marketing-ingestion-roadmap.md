@@ -78,7 +78,7 @@ number matches the vendor's own screen, nothing downstream is trustworthy.
 
 | Deliverable | Notes |
 |---|---|
-| Meta connector | Async insights jobs, `publisher_platform` breakdown, `actions[]` normalisation |
+| Meta connector | **Built.** Submit/poll/download async job flow, cursor pagination, mandatory `publisher_platform` breakdown, `actions[]` preserved verbatim for the silver layer. API-specific names isolated in `MetaApiContract` and unverified against live docs (egress-blocked) |
 | Conversion action type configuration | Which action types count as a conversion, per account, business-owned |
 | Attribution window alignment across TikTok and Meta | The first genuine cross-platform comparability work |
 | Cross-platform comparability rules in the semantic layer | Metric definition table populated and enforced |

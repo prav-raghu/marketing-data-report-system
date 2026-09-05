@@ -27,6 +27,8 @@ public static class IngestionApiOptionsFactory
             ConnectorTimeoutSeconds = int.TryParse(configuration["CONNECTOR_TIMEOUT_SECONDS"], out var timeout)
                 ? timeout
                 : 100,
+            MetaBaseUrl = configuration["META_BASE_URL"] ?? "https://graph.facebook.com/",
+            MetaApiVersion = configuration["META_API_VERSION"] ?? "v21.0",
         };
 
         var result = new IngestionApiOptionsValidator().Validate(options);
