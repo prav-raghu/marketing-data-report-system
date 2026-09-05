@@ -20,6 +20,13 @@ public static class IngestionApiOptionsFactory
             MaxConcurrentExtractions = int.TryParse(configuration["MAX_CONCURRENT_EXTRACTIONS"], out var concurrency)
                 ? concurrency
                 : 20,
+            TikTokBaseUrl = configuration["TIKTOK_BASE_URL"] ?? "https://business-api.tiktok.com/",
+            VendorRateLimitPerMinute = int.TryParse(configuration["VENDOR_RATE_LIMIT_PER_MINUTE"], out var vendorLimit)
+                ? vendorLimit
+                : 500,
+            ConnectorTimeoutSeconds = int.TryParse(configuration["CONNECTOR_TIMEOUT_SECONDS"], out var timeout)
+                ? timeout
+                : 100,
         };
 
         var result = new IngestionApiOptionsValidator().Validate(options);

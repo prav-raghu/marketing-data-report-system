@@ -56,7 +56,7 @@ real Postgres is the next thing that can actually invalidate this code.
 
 | Deliverable | Notes |
 |---|---|
-| TikTok connector | OAuth refresh, async report jobs, cursor pagination, Redis rate limiting |
+| TikTok connector | **Built.** Paged reporting, Redis fixed-window rate limiting, backoff on 429/5xx, per-row quarantine on incomplete keys. API-specific names isolated in `TikTokApiContract` and unverified against live docs (egress-blocked) |
 | Auto Loader raw-to-bronze stream | File notification mode |
 | Bronze-to-silver normalisation for TikTok | Currency, timezone, attribution, breakdown hashing |
 | `dim_date`, `dim_platform`, `dim_account`, `dim_campaign` | Type 2 loader for campaign |

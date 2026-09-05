@@ -14,6 +14,9 @@ public sealed record IngestionApiOptions
     public required string ReportingTimezone { get; init; }
     public required string ReportingCurrency { get; init; }
     public required int MaxConcurrentExtractions { get; init; }
+    public required string TikTokBaseUrl { get; init; }
+    public required int VendorRateLimitPerMinute { get; init; }
+    public required int ConnectorTimeoutSeconds { get; init; }
 
     public bool IsProduction => string.Equals(NodeEnv, "production", StringComparison.OrdinalIgnoreCase);
 }

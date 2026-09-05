@@ -206,5 +206,8 @@ public sealed class IngestionRunServiceTests
         ReportingTimezone = "Africa/Johannesburg",
         ReportingCurrency = "ZAR",
         MaxConcurrentExtractions = 20,
+        TikTokBaseUrl = "https://business-api.tiktok.test/",
+        VendorRateLimitPerMinute = 500,
+        ConnectorTimeoutSeconds = 100,
     };
 }

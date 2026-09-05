@@ -6,15 +6,19 @@ using Microsoft.OpenApi;
 using DotNetMonoRepoTemplate.Cache;
 using DotNetMonoRepoTemplate.Database;
 using DotNetMonoRepoTemplate.Ingestion;
+using DotNetMonoRepoTemplate.Ingestion.Connectors;
 using DotNetMonoRepoTemplate.Ingestion.Lake;
 using DotNetMonoRepoTemplate.Logging;
 using DotNetMonoRepoTemplate.Metrics;
 using DotNetMonoRepoTemplate.Observability;
 using IngestionApi.Auth;
 using IngestionApi.Configuration;
+using IngestionApi.Connectors;
+using IngestionApi.Connectors.TikTok;
 using IngestionApi.Dtos;
 using IngestionApi.Endpoints;
 using IngestionApi.Middleware;
+using IngestionApi.RateLimiting;
 using IngestionApi.Services;
 using IngestionApi.Validators;
 using Serilog;
@@ -41,6 +45,22 @@ builder.Services.AddDotNetMonoRepoTemplateIngestion(new RawZoneOptions
 {
     ConnectionString = ingestionApiOptions.RawZoneConnectionString,
     ContainerName = ingestionApiOptions.RawZoneContainer,
+});
+
+builder.Services.AddSingleton(new VendorRateLimiterOptions
+{
+    PermitsPerWindow = ingestionApiOptions.VendorRateLimitPerMinute,
+});
+builder.Services.AddSingleton<IRateLimiter, RedisRateLimiter>();
+builder.Services.AddScoped<IConnectorSecretResolver, ConfigurationSecretResolver>();
+
+builder.Services.AddSingleton(new TikTokOptions
+{
+    BaseAddress = new Uri(ingestionApiOptions.TikTokBaseUrl),
+});
+builder.Services.AddHttpClient<ISourceConnector, TikTokAdsConnector>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(ingestionApiOptions.ConnectorTimeoutSeconds);
 });
 
 builder.Services.AddScoped<IConnectorRegistry, ConnectorRegistry>();

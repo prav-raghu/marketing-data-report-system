@@ -19,5 +19,11 @@ public sealed class IngestionApiOptionsValidator : AbstractValidator<IngestionAp
         RuleFor(x => x.ReportingTimezone).NotEmpty();
         RuleFor(x => x.ReportingCurrency).NotEmpty().Length(3);
         RuleFor(x => x.MaxConcurrentExtractions).InclusiveBetween(1, 200);
+        RuleFor(x => x.TikTokBaseUrl)
+            .NotEmpty()
+            .Must(value => Uri.TryCreate(value, UriKind.Absolute, out _))
+            .WithMessage("TIKTOK_BASE_URL must be an absolute URI");
+        RuleFor(x => x.VendorRateLimitPerMinute).GreaterThan(0);
+        RuleFor(x => x.ConnectorTimeoutSeconds).InclusiveBetween(1, 600);
     }
 }

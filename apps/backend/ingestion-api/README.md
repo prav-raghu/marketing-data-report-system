@@ -8,17 +8,15 @@ Design background: [Marketing Data Platform](../../../documentation/architecture
 
 ## Status
 
-This is the **Phase 0 foundation**, replayed onto the post-Blazor-migration
-codebase. It contains the control plane, the ingestion
-envelope machinery and the connector abstraction. It contains **no source
-connectors yet** — TikTok is Phase 1, Meta is Phase 2.
+Phase 0 (control plane, envelope machinery, connector abstraction) is complete
+and replayed onto the post-Blazor-migration codebase, and the **first connector —
+TikTok — is in**. Meta is Phase 2.
 
-`GET /internal/v1/connectors` will therefore return an empty
-`registeredConnectorKeys` array until the first connector is implemented. That is
-expected, not a misconfiguration.
+`GET /internal/v1/connectors` now reports `tiktok_ads` in
+`registeredConnectorKeys`.
 
 **Compiler-verified.** Built and tested on .NET SDK 10.0.400:
-`dotnet build DotNetMonoRepoTemplate.sln` reports 0 errors, and all 49 tests in
+`dotnet build DotNetMonoRepoTemplate.sln` reports 0 errors, and all 58 tests in
 `IngestionApi.Tests` pass.
 
 ```bash
@@ -92,6 +90,41 @@ rather than failing later. See `.env.example`.
 | `REPORTING_TIMEZONE` | Defaults to `Africa/Johannesburg` |
 | `REPORTING_CURRENCY` | Defaults to `ZAR` |
 | `MAX_CONCURRENT_EXTRACTIONS` | Extraction fan-out ceiling |
+
+## The TikTok connector — what is proven and what is not
+
+**Proven by tests** (9 of them, in `tests/Connectors/`): pagination follows
+`total_page` to the end, breakdown dimensions land in the idempotency key in
+sorted order, the resolved access token is sent on every request, a rate-limit
+permit is taken per page, a non-zero `code` in the response body raises
+`TikTokApiException`, HTTP 429 is retried with exponential backoff, rows missing
+the natural key are skipped rather than failing the batch, and both dimensions
+and metrics survive into the payload.
+
+**Not proven: the vendor API specifics.** TikTok's developer documentation is
+unreachable from the environment that wrote this (egress-blocked), so the
+endpoint path, the response envelope shape, the metric names and the breakdown
+dimension names come from prior knowledge, not from a freshly-read spec. Every
+one of those details is deliberately confined to a single file,
+`Connectors/TikTok/TikTokApiContract.cs`, so correcting them against the real
+documentation is a one-file change plus a fixture update — not a rewrite. The
+connector logic above is independent of whether those names are right.
+
+Verify against current TikTok docs before the first live run:
+
+| Constant | What to confirm |
+|---|---|
+| `ReportPath` | The reporting endpoint path and API version segment |
+| `AccessTokenHeader` | The header name carrying the token |
+| `SuccessCode`, envelope fields | That success is `code: 0` and the `data.list` / `data.page_info` shape holds |
+| `Metrics` | Every metric name, and that `video_watched_2s` is still the Meta-comparable view definition |
+| `BreakdownDimensions` | The dimension name for each canonical breakdown |
+| `ReportType`, `DataLevel`, `ServiceType` | That these enum values are current |
+
+Credentials resolve through `IConnectorSecretResolver` under the name
+`TIKTOK_ACCESS_TOKEN_<advertiser_id>`. The only implementation today reads
+configuration; a Key Vault implementation drops in behind the same interface
+without touching the connector.
 
 ## Writing a connector
 
